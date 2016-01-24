@@ -1,0 +1,327 @@
+\documentclass[11pt,reqno,final,pdftex]{amsart}
+%% DO NOT DELETE OR CHANGE THE FOLLOWING TWO LINES!
+%% $Revision$
+%% $Date$
+\usepackage[round,sort,elide]{natbib}
+\usepackage{graphicx}
+\usepackage{times}
+\usepackage{rotating}
+\usepackage{subfig}
+\usepackage{color}
+\newcommand{\aak}[1]{\textcolor{cyan}{#1}}
+\newcommand{\mab}[1]{\textcolor{red}{#1}}
+\newcommand{\cec}[1]{\textcolor{blue}{#1}}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\textheight}{8.75in}
+\setlength{\evensidemargin}{0in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{-.35in}
+\setlength{\parskip}{.1in}
+\setlength{\parindent}{0.3in}
+
+%% cleveref must be last loaded package
+\usepackage[sort&compress]{cleveref}
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Tab.}{Tables}
+\crefname{equation}{Eq.}{Eqs.}
+\Crefname{equation}{Eq.}{Eqs.}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
+\creflabelformat{equation}{#2#1#3}
+\newcommand{\crefrangeconjunction}{--}
+\newcommand{\creflastconjunction}{, and~}
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}
+\newtheorem{corol}[thm]{Corollary}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{defn}[thm]{Definition}
+\newtheorem{hyp}[thm]{Hypothesis}
+\newtheorem{example}[thm]{Example}
+\newtheorem{conj}[thm]{Conjecture}
+\newtheorem{algorithm}[thm]{Algorithm}
+\newtheorem{remark}{Remark}
+\renewcommand\thethm{\arabic{thm}}
+\renewcommand{\theremark}{}
+
+\numberwithin{equation}{part}
+\renewcommand\theequation{\arabic{equation}}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\thesection.\arabic{subsection}}
+\renewcommand\thefigure{\arabic{figure}}
+\renewcommand\thetable{\arabic{table}}
+\renewcommand\thefootnote{\arabic{footnote}}
+
+\newcommand\scinot[2]{$#1 \times 10^{#2}$}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\pkg}[1]{\textsf{#1}}
+\newcommand{\dlta}[1]{{\Delta}{#1}}
+\newcommand{\Prob}[1]{\mathbb{P}\left[#1\right]}
+\newcommand{\Expect}[1]{\mathbb{E}\left[#1\right]}
+\newcommand{\Var}[1]{\mathrm{Var}\left[#1\right]}
+\newcommand{\dd}[1]{\mathrm{d}{#1}}
+\newcommand{\citetpos}[1]{\citeauthor{#1}'s \citeyearpar{#1}}
+
+\begin{document}
+
+<<setup,include=FALSE,cache=F>>=
+require(knitr)
+opts_chunk$set(
+               progress=T,prompt=F,tidy=F,highlight=T,
+               warning=F,message=F,error=F,
+               results='hide',echo=F,cache=T,
+               size='scriptsize',
+               fig.path='figure/',fig.lp="fig:",
+               fig.align='left',
+               fig.show='asis',
+               fig.height=4,fig.width=6.83,
+               out.width="\\linewidth",
+               dpi=150,
+               dev=c('png','tiff'),
+               dev.args=list(
+                 png=list(bg='transparent'),
+                 tiff=list(compression='lzw')
+                 )
+               )
+
+scinot <- function (x, digits = 2, type = c("expression","latex")) {
+  type <- match.arg(type)
+  x <- signif(x,digits=digits)
+  ch <- floor(log10(abs(x)))
+  mn <- x/10^ch
+  switch(type,
+         expression={
+           bquote(.(mn)%*%10^.(ch))
+         },
+         latex={
+           paste0("\\scinot{",mn,"}{",ch,"}")
+         }
+         )
+}
+
+require(xtable)
+
+options(scipen=-1)
+
+options(
+        xtable.caption.placement="top",
+        xtable.include.rownames=FALSE
+        )
+
+@
+
+The purpose of this document is to outline some models that could
+potentially be used to study the factors that push parasites towards
+generalism or specialism. The approach that I suggest is fairly
+simple: for any set of ecological conditions (where ``ecological
+conditions'' is used loosely to refer to any change in model
+parameters that might shift the relative costs and benefits of
+generalism/specialism), what is the evolutionarily stable transmission
+strategy?
+
+To begin, I need to define a model. I begin by considering an environmentally
+transmitted parasite that can potentially transmit to two hosts. For
+simplicity of formulation, I will assume that infections, once
+acquired, are lifelong. It would be trivial to modify the model to
+allow for recovery (either to a permanently immune state, to a
+temporarily immune state, or to the susceptible state), but that would
+complicate the analysis somewhat. In the case, the two host
+populations are subdivided into susceptible ($S_1$, $S_2$) and
+infected ($I_1$, $I_2$) classes. The parasite ($P$) is transmitted
+through the environment. A simple model for the dynamics is:
+\begin{align*}
+\frac{dS_1}{dt} &= r_1 N_1 \left(\frac{1-N_1}{K_1}\right) - \beta_1 S_1 P \\
+\frac{dS_2}{dt} &= r_2 N_2 \left(\frac{1-N_2}{K_2}\right) - \beta_2 S_2 P \\
+\frac{dI_1}{dt} &= \beta_1 S_1 P - (\mu_1 + \nu_1) I_1 \\
+\frac{dI_2}{dt} &= \beta_2 S_2 P - (\mu_2 + \nu_2) I_2 \\
+\frac{dP}{dt} &= \lambda_1 I_1 + \lambda_2 I_2 - \delta P,
+\end{align*}
+where $N_i = S_i + I_i$. In the absence of infection, both host
+populations grow logistically at per-capita rates $r_1$ and $r_2$ to
+the carrying capacities $K_1$ and $K_2$, respectively. Both
+susceptible and infected individuals are assumed to have equal birth
+rates, and all individuals are born susceptible (no vertical
+transmission). The infection rates per parasite in the environment are
+$\beta_1$ and $\beta_2$. Infected hosts suffer mortality due to natural causes
+at the rates $\mu_1$ and $\mu_2$ and due to infection at the rates
+$\nu_1$ and $\nu_2$. Infected hosts shed parasites into the environment at the
+rates $\lambda_1$ and $\lambda_2$, and these are lost at the rate $\delta$.
+
+We can define the $R_0$ for this parasite as \citep{Dobson2004,Fenton2015}:
+\begin{equation}
+\sqrt{\frac{\lambda_1 \beta_1 S_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 S_2}{\mu_2 + \nu_2}}.
+\end{equation}
+If $R_0 > 1$, the parasite can invade.
+Note that this expression is equivalent to $\sqrt{R_{0,1} + R_{0,2}}$, where $R_{0,i}$ is the $R_0$ of a parasite due to transmission only in host $i$.
+The implication here is that the parasite could have an $R_0$ less than 1 in each individual host, so long as the sum is greater is greater than 1.
+Moreover, this simple model can be extended to consider many host species; in general, the fitness of a parasite infection $n$ host species will be
+\begin{equation}
+\sqrt{\sum_{i=1}^n R_{0,i}}.
+\end{equation}
+We can define the ratio $R_{0,i}/R_0$ to evaluate how important each individual host is to the overall fitness of the parasite; this is also a fairly unambiguous measure of the degree of specialism for a parasite, as the ratio is bounded between 0 and 1.
+
+A similar analysis can be used to determine whether a mutant parasite with a different ``strategy'' (where strategy is, as yet, undefined) can invade the system.
+In particular, let $\tau_r$ be the strategy of the resident parasite.
+The value of this strategy will determine the epidemiological equilibrium of the system when the mutant parasite is absent; for the two-host system, $\hat{S}_1(\tau_r)$ and $\hat{S}_2(\tau_r)$ are the equilibrium abundances of the susceptible hosts of the two species.
+These abundances are (implicitly) functions of the resident strategy $\tau_r$.
+A mutant parasite can invade this system if
+\begin{equation}
+\sqrt{\frac{\lambda_1 \beta_1 \hat{S}_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 \hat{S}_2}{\mu_2 + \nu_2}} > 1.
+\end{equation}
+The question of interest is which parameters of this expression are influenced by the mutant parasite's strategy.
+
+
+Without any loss of generality, we can assume that $\tau_r = 0$ implies specialization on host 1, and increasing values of $\tau_r$
+In particular, what are the evolutionary trade-offs that a parasite faces as it adds hosts to its range?
+I can think of several possibilities:
+\begin{itemize}
+\item There might be simple trade-off between $\lambda_1$ and $\lambda_2$, such that increasing $\tau_r$
+
+
+
+
+To investigate what the evolutionarily stable transmission strategy
+is, let's assume that the parasite has a single trait $\tau$ that
+determines the values of $\beta_1$ and $\beta_2$. $\tau$ can take
+values between 0 and 1: when $\tau=0$, $\beta_1$ is maximal and
+$\beta_2=0$; when $\tau=1$, $\beta_2$ is maximal and
+$\beta_1=0$. Between these extremes, we assume that both $\beta_1$ and
+$\beta_2$ are greater than 0, but that both are less than the maximum
+possible. Biologically, this assumption imagines that any trait change
+that allows a specialist to trasmit to a new host carries the cost of
+reduced transmission in the original host. We can formalize that
+assumption mathematically by letting $\beta_{1,2}$ depend on $\tau$ in
+the following way:
+\begin{align}
+\beta_1(\tau) &= \beta_{1,max}\left(1 - \tanh\left(w_1(\tau-\tau_{1,s})\right)\right)\\
+\beta_2(\tau) &= \beta_{2,max}\left(1 - \tanh\left(w_2(\tau_{2,s}-\tau)\right)\right)
+\end{align}
+I have plotted several examples of these two functions in
+Fig. \ref{fig:trans} to show how changing the parameters of these
+functions affects the transmission rates. For simplicity, I hold all
+of the parameters of the $\beta_1(\tau)$ equation constant - it is
+shown as the thick grey line. When the parameters of the $\beta_2(\tau)$
+equation are identical to those of the $\beta_1$ equation, $\beta_2$
+is shown by the solid black line - it is the mirror image of
+$\beta_1$. However, the transmission parameters need not be
+identical. If $\beta_{2,max} > \beta_{1,max}$, then that the maximum
+possible tranmission rate is higher in host 2, and $\beta_2$ is given
+by the dashed line. Alternatively, if $w_2 < w_1$, then transmission
+rate in host 2 increases more gradually with an increase in $\tau$,
+and $\beta_2$ is given by the dotted line. Finally, if $\tau_{2,s} <
+\tau_{1,s}$ then the inflection point of the function shifts to lower
+$\tau$ values, and $\beta_2$ is given by the dot-dashed line. By
+altering any of the parameters of the $\beta_1$ or $\beta_2$
+functions, we alter the costs and benefits of generalism and
+specialism.
+
+<<echo=FALSE, fig.height=4, fig.width=4, units='in',fig.cap='Transmission rates to host 1 and host 2 as the parameters of the transmission functions are varied.', label=trans>>=
+
+beta1 <- function(tau, b1max, w1, tau1)
+    b1max*(1-tanh(w1*(tau-tau1)))
+beta2 <- function(tau, b1max, w1, tau1)
+    b2max*(1-tanh(w2*(tau2-tau)))
+tau=seq(0,1,0.01)
+
+par(oma=c(0,0,0,0), mar=c(4,4,1,1))
+b1max <- 5
+w1 <- 10
+tau1 <- 0.5
+plot(tau, beta1(tau, b1max, w1, tau1), type='l', ylim=c(0, 12), xlab="", ylab="", lwd=3, col=grey(0.4))
+mtext(side=1, line=2.5, expression("Trait value"~~tau))
+mtext(side=2, line=2.5, expression("Transmission rates"~~beta[i]))
+b2max <- 5
+w2 <- 10
+tau2 <- 0.5
+lines(tau, beta2(tau, b2max, w2, tau2), lwd=2)
+b2max <- 6
+lines(tau, beta2(tau, b2max, w2, tau2), lwd=2, lty=2)
+b2max <- 5
+w2 <- 5
+lines(tau, beta2(tau, b2max, w2, tau2), lwd=2, lty=3)
+w2 <- 10
+tau2 <- 0.25
+lines(tau, beta2(tau, b2max, w2, tau2), lwd=2, lty=4)
+@
+
+What we can do with this model is modify various parameters of the
+model and ask how that affects the evolutionarily stable value of
+$\tau$. The mathematical analysis proceeds as follows: a resident
+population of parasites with a particular value of $\hat{\tau}$ comes into
+ecological equilibrium with both host populations (if $\hat{\tau}=0$ or 1,
+the non-exploited host will approach its carrying capacity). We then
+ask whether a parasite population with a different trait can invade
+this equilibrium. If invasion is impossible for all trait values not
+equal to the resident trait value, then we say that $\hat{\tau}$ is
+evolutionarily stable.
+
+Note that this explicitly takes into account the demography of the
+host populations. For example, $\beta_{1,max}$ may be much greater
+than $\beta_{2,max}$, but if $K_2$ is much greater than $K_1$, the
+best strategy for the parasite might be to specialize on host 2 rather
+than host 1.
+
+\textbf{The key for moving forward with analysis is to target some particular
+parameter manipulations that are ecological interesting.} I think
+things like my example in the previous paragraph might be particularly
+fruitful. It might also be interesting to explore how the virulence in
+each host affects the ESS transmission strategy.
+
+We can also explore other models. For example, what if the parasite is
+not transmitted through the environment, but rather is transmitted
+directly between the two hosts? In this case, the model looks more
+like the following (Dobson 2004 also investigated this model):
+\begin{align*}
+\frac{dS_1}{dt} &= r_1 N_1 \left(1-N_1/K_1\right) - \beta_{11} S_1 I_1 - \beta_{12} S_1 I_2 \\
+\frac{dS_2}{dt} &= r_2 N_2 \left(1-N_2/K_2\right) - \beta_{22} S_2 I_2 - \beta_{21} S_2 I_2 \\
+\frac{dI_1}{dt} &= S_1 (\beta_{11}I_1 + \beta_{12}I_2) - (\mu_1 + \nu_1) I_1 \\
+\frac{dI_2}{dt} &= S_2 (\beta_{21}I_1 + \beta_{22}I_2) - (\mu_2 + \nu_2) I_2.
+\end{align*}
+Here you can see an immediate difference with the model of environmental transmission.
+In the environmental transmission model, there was no need to treat cross-species transmission any differently than in-species transmission, because all parasites reside in the environment: each species could have a characteristic encounter rate with parasites in the environment (as set by the parameters of the $\beta$ equations), but we did not consider parasites in the environment that were released by species 1 to be any different from parasites that were released by species 2 (which seems like a reasonable assumption).
+In this model, however, the transmission rate within-species may be different from the cross-species transmission rate.
+For example, $\beta_{11} > \beta_{12}$ would imply that an individual of species 1 is more likely to acquire an infection due to a contact from another individual of species 1 than an individual of species 2.
+Such differences may be due to the fact that susceptible individuals of species 1 are more likely to encounter an infectious individuals of species 1, or because the probability of transmission is higher.
+Note that it won't always be the case that $\beta_{11} > \beta_{12}$: for example, for many zoonoses, cross-species transmission is more likely than within-species transmission.
+This does complicate the formulation of the functions for $\beta$, however.
+We can use a similar formulation to the environmental transmission case to consider how the trait $\tau$ influences $\beta_{11}$ and $\beta_{22}$ (the within-species transmission rates), but we also must specify a form for the cross-species transmission.
+Dobson (2004) made the assumption that
+\begin{equation}
+\beta_{ij} = c_{ij}\left(\frac{\beta_{ii}+\beta_{jj}}{2}\right),
+\end{equation}
+where $c_{ij}$ varies between 0 and 1 and scales the magnitude of cross-species transmission.
+Note that under this formulation, cross-species transmission must be less than or equal to within-species transmission for at least one species, but may be larger than within-species transmission for another species.
+For example, if $\beta_{11} = 0.1$ and $\beta_{22} = 0.2$, and $c_{ij} = 0.8$, then $\beta_{ij} = 0.12$ - the parasite transmits most from species 2 to species 2, least from species 1 to species 1, and at an intermediate rate from species 2 to species 1.
+
+For this model, we can assume the same transmission functional forms
+specified above. The difference that we have to consider is how to
+model cross-species transmission. What I have assumed here is that,
+e.g., $\beta_1$ is the transmission rate \emph{to} susceptible host 1,
+not the transmission rate \emph{from} susceptible host 1. So if $\tau$
+is very close to 0, then $\beta_2$ is very small, so transmission to
+host 2 occurs at a very low rate. However, those few infected host 2
+individuals have high transmission rates when infected susceptible
+host 1 individuals.
+
+With this model, you can repeat any of the analyses that were run for
+the environmentally transmitted parasite. It may also be interesting
+to compare the ESS transmission strategies between environmentally and
+directly transmitted parasites. It will take some careful thought to
+figure out how to make such a comparison fair, but it would certainly
+be interesting.
+
+I have also been thinking about how to set up the model to consider
+transmission strategies for a stage-structured parasite
+population. If everyone thinks that would be particularly interesting,
+I can try to work something up, but I thought the models here would be
+a fruitful way to keep the discussion going. Please send comments,
+criticisms, suggestions, etc.
+
+\bibliographystyle{ecology}
+\bibliography{~/Dropbox/Papers/library.bib}
+
+\end{document}
