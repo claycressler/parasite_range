@@ -1,4 +1,53 @@
-\documentclass[11pt,reqno,final,pdftex]{amsart}
+\documentclass[11pt,reqno,final,pdftex]{amsart}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 %% DO NOT DELETE OR CHANGE THE FOLLOWING TWO LINES!
 %% $Revision$
 %% $Date$
@@ -65,54 +114,10 @@
 \newcommand{\Var}[1]{\mathrm{Var}\left[#1\right]}
 \newcommand{\dd}[1]{\mathrm{d}{#1}}
 \newcommand{\citetpos}[1]{\citeauthor{#1}'s \citeyearpar{#1}}
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-<<setup,include=FALSE,cache=F>>=
-require(knitr)
-opts_chunk$set(
-               progress=T,prompt=F,tidy=F,highlight=T,
-               warning=F,message=F,error=F,
-               results='hide',echo=F,cache=T,
-               size='scriptsize',
-               fig.path='figure/',fig.lp="fig:",
-               fig.align='left',
-               fig.show='asis',
-               fig.height=4,fig.width=6.83,
-               out.width="\\linewidth",
-               dpi=150,
-               dev=c('png','tiff'),
-               dev.args=list(
-                 png=list(bg='transparent'),
-                 tiff=list(compression='lzw')
-                 )
-               )
 
-scinot <- function (x, digits = 2, type = c("expression","latex")) {
-  type <- match.arg(type)
-  x <- signif(x,digits=digits)
-  ch <- floor(log10(abs(x)))
-  mn <- x/10^ch
-  switch(type,
-         expression={
-           bquote(.(mn)%*%10^.(ch))
-         },
-         latex={
-           paste0("\\scinot{",mn,"}{",ch,"}")
-         }
-         )
-}
-
-require(xtable)
-
-options(scipen=-1)
-
-options(
-        xtable.caption.placement="top",
-        xtable.include.rownames=FALSE
-        )
-
-@
 
 The purpose of this document is to outline some models that could potentially be used to study the factors that push parasites towards generalism or specialism.
 I will propose two approaches to this problem, an evolutionary approach based on game theory and an ecological approach based on optimal foraging theory.
@@ -170,19 +175,19 @@ where $\hat{S}_1$ and $\hat{S}_2$ are the equilibrium abundances of susceptible 
 The key to making this analysis interesting are the potential trade-offs between traits that might affect the number of hosts utilized by the parasite.
 In particular, let's define $\eta$ to be the number of hosts the parasite utilizes.
 Effects of $\eta$ on other parameters of the model that might be interesting to consider are:
-\begin{enumerate}
+\begin{itemize}
 \item a trade-off between $\eta$ and $\lambda_i$: the more hosts the parasite infects, the less its shedding rate in each host;
 \item a trade-off between $\eta$ and $\nu_i$: the more hosts the parasite infects, the greater its virulence in each host;
 \item a trade-off between $\eta$ and $\gamma$: the more hosts a parasite infects, the less hardy each parasite is in the environment;
 \item a trade-off between $\eta$ and $\beta_i$: the more hosts a parasite infects, the less transmissible each parasite is.
-\end{enumerate}
+\end{itemize}
 Any of these trade-offs might be interesting to explore, as each seems biologically reasonable: the first essentially posits that transmitting to many hosts compromises within-host replication ability; the third and fourth essentially posit that transmitting to many hosts compromises the quality or viability of parasites in the environment; the second is probably the most tenuous, positing that transmitting to many hosts makes the parasite more harmful to each one.
 More complicated relationships could also be considered: for example, if increasing the number of infected hosts decreases within-host replication, then increasing $\eta$ might simultaneously decrease $\lambda_i$ and $\nu_i$ (a classic transmission--virulence trade-off controlled by the parasite's generality).
 
 This evolutionary model can help us make predictions about how ecological conditions might affect the evolution of generality.
 For example, the invasion criterion (Eq. \ref{eq:invasion}) can be rearranged to yield
 \begin{equation}
-\sqrt{\frac{\lambda_1 \beta_1 \hat{S}_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 \hat{S}_2}{\mu_2 + \nu_2} + \frac{\lambda_3 \beta_3 K_3}{\mu_3 + \nu_3}} > \sqrt{\gamma}.
+\sqrt{\frac{\lambda_1 \beta_1 \hat{S}_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 \hat{S}_2}{\mu_2 + \nu_2} + \frac{\lambda_3 \beta_3 K_3}{\mu_3 + \nu_3}} > sqrt{\gamma}.
 \end{equation}
 Thus, the higher the mortality rate in the environment, the harder it will be for a mutant parasite that infects more hosts to invade.
 This suggests that parasites living in high-mortality environments might be more likely to be specialists.
@@ -203,25 +208,24 @@ Optimal foraging theory says that this prey item will be included if
 \end{equation}
 The intuition behind this equation is as follows: imagine that the predator has encountered an individual of type $n+1$: should it eat it or keep searching for other prey items?
 It should it eat it only if the rate it gains energy from that prey item (the profitability divided by the time to handle it) is greater than the average rate it gains energy from searching for and handling all other items in the diet.
-A note to the particularly savvy: I realize I am playing a bit fast and loose with the analytically form of the optimal foraging prediction.
-The form of the equation is essentially the per-prey-item profitability.
-However, because optimal foraging theory deals with predators, a single predator will potentially encounter many prey in a given period of time, so technically the prediction should include information about how many prey of each type will be encountered.
-A parasite, however, needs only to encounter a single host (which it will infect, or not), so the per-prey-item form makes sense.
 
 It remains to relate these to parameters to the situation of an environmentally tranmsitted parasite.
 Although this particular question has not been tackled, other authors have considered applying optimal foraging theory to parasitoids \citep{Iwasa1984,Charnov1988} and lytic phages \citep{Guyader2008}.
 The following is my best first attempt at making this relation.
-To start as simply as possible, let's assume that the profitability depends on the shedding rate and the duration of infection, the search time depends on the transmission (encounter) rate and the abundance of the host (which we will assume is constant), and the handling time depends on the development rate of the parasite (assuming that eggs are ingested from the environment and must develop from larvae into adults before shedding begins).
+Let's consider the processes we want to include in the model.
+To start as simply as possible, let's assume that the profitability is the shedding rate times the duration of infection, the search time depends on the transmission (encounter) rate and the abundance of the host (which we will assume is constant), and the handling time depends on the development rate of the parasite (assuming that eggs are ingested from the environment and must develop from larvae into adults before shedding begins).
 Let $\lambda_i$ be the shedding rate from host $i$; let $\mu_i$ be the mortality rate of host $i$; let $\beta_i$ be the encounter rate with host $i$; let $H_i$ be the abundance of host $i$; and let $\gamma_i$ be the development rate of the parasite.
 Then
 \begin{align}
-E_i &= \frac{\lambda_i}{\mu_i}, \\
+E_i &= \frac{\lambda_i}{\mu_i}\frac{\gamma_i}{\gamma_i+\mu_i}, \\
 s_i &= \frac{1}{\beta_i H_i}, \\
 h_i &= \frac{1}{\gamma_i}.
 \end{align}
+Note that the profitability is scaled by the probability that the parasite matures before the host dies $(\gamma_i/(\gamma_i+\mu_i))$.
+
 Under this very simple model, the $(n+1)^{\text{th}}$ host will be included if (refer to \ref{eq:OFT}):
 \begin{equation}
-\frac{\lambda_{n+1} \gamma_{n+1}}{\mu_{n+1}} > \frac{\sum_{i=1}^n \frac{\lambda_i}{\mu_i}}{1/\sum_{i=1}^n \beta_i H_i + 1/\sum_{i=1}^n \gamma_i}.
+\frac{\lambda_{n+1} \gamma_{n+1}^2}{\mu_{n+1} (\gamma_{n+1}+\mu_{n+1})} > \frac{\sum_{i=1}^n \frac{lambda_i}{\mu_i}\frac{\gamma_i}{\gamma_i+\mu_i}}{1/\sum_{i=1}^n \beta_i H_i + 1/\sum_{i=1}^n \gamma_i}.
 \end{equation}
 
 \begin{enumerate}
