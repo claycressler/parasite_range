@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     94149,       2821]
-NotebookOptionsPosition[     90106,       2687]
-NotebookOutlinePosition[     90463,       2703]
-CellTagsIndexPosition[     90420,       2700]
+NotebookDataLength[    100682,       3007]
+NotebookOptionsPosition[     96475,       2868]
+NotebookOutlinePosition[     96831,       2884]
+CellTagsIndexPosition[     96788,       2881]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -2683,10 +2683,191 @@ to\n",
 }], "Text",
  CellChangeTimes->{{3.6623089544515247`*^9, 3.6623089812486887`*^9}, {
   3.662309030209406*^9, 3.6623090903172617`*^9}}]
-}, Closed]]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Optimal foraging model with mortality - confirmation of Iwasa et al. 1984 \
+model\
+\>", "Subsubsection",
+ CellChangeTimes->{{3.663467205709711*^9, 3.6634672391825037`*^9}}],
+
+Cell[TextData[{
+ "Based on Iwasa et al. (1984), you can calculate the expected reproductive \
+success of a parasite (",
+ StyleBox["W",
+  FontSlant->"Italic"],
+ ") using the following recursive equation:\n",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"W", "=", 
+    RowBox[{
+     RowBox[{
+      RowBox[{
+       SuperscriptBox["e", 
+        RowBox[{
+         RowBox[{"-", "\[CapitalSigma]"}], " ", 
+         SubscriptBox["\[Beta]", "i"], 
+         SubscriptBox["H", "i"], "\[CapitalDelta]t"}]], "(", 
+       RowBox[{"1", "-", 
+        SuperscriptBox["e", 
+         RowBox[{
+          RowBox[{"-", "\[Gamma]"}], " ", "\[CapitalDelta]t"}]]}], ")"}], 
+      "W"}], "+", 
+     RowBox[{
+      SubscriptBox["\[CapitalSigma]", "i"], " ", 
+      RowBox[{"(", 
+       RowBox[{"1", "-", 
+        SuperscriptBox["e", 
+         RowBox[{
+          RowBox[{"-", 
+           SubscriptBox["\[Beta]", "i"]}], 
+          SubscriptBox["H", "i"], "\[CapitalDelta]t"}]]}], ")"}], 
+      RowBox[{"max", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["E", "i"], "+", "W"}], ")"}], 
+         SuperscriptBox["e", 
+          RowBox[{
+           RowBox[{"-", 
+            SubscriptBox["\[Mu]", "i"]}], "/", 
+           SubscriptBox["\[Sigma]", "i"]}]]}], ",", "W"}], "]"}]}]}]}], 
+   TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ "\nExplanation of terms:\nThe rate of encounter with hosts of type i is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    SubscriptBox["\[Beta]", "i"], 
+    SubscriptBox["H", "i"]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", so the probability of a parasite encountering a host of type ",
+ StyleBox["i",
+  FontSlant->"Italic"],
+ " in a small amount of time ",
+ Cell[BoxData[
+  FormBox["\[CapitalDelta]t", TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"1", "-", 
+    SuperscriptBox["e", 
+     RowBox[{
+      RowBox[{"-", 
+       SubscriptBox["\[Beta]", "i"]}], 
+      SubscriptBox["H", "i"], "\[CapitalDelta]t"}]]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". The probability the parasite will not encountering any hosts in that same \
+time interval is ",
+ Cell[BoxData[
+  FormBox[
+   SuperscriptBox["e", 
+    RowBox[{
+     RowBox[{"-", "\[CapitalSigma]"}], " ", 
+     SubscriptBox["\[Beta]", "i"], 
+     SubscriptBox["H", "i"], "\[CapitalDelta]t"}]], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". If no host is encountered, the parasite must survive for \[CapitalDelta]t \
+in order to maintain its future reproductive success. The parasite dies with \
+probability  ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"1", "-", 
+    SuperscriptBox["e", 
+     RowBox[{
+      RowBox[{"-", "\[Gamma]"}], " ", "\[CapitalDelta]t"}]]}], 
+   TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". Thus the first term is the expected reproductive success for a parasite \
+that doesn\[CloseCurlyQuote]t find a host or die.\n\nThe second term deals \
+with the situation where a parasite does find a host. This is where I think \
+this model starts to break down, actually. Because the parasite can only \
+infect once, not many times, as a parasitoid or predator could do. Once it \
+infects its future reproductive success is fixed.\n\nSo instead of the Iwasa \
+et al. formulation, I think I need something different. \nThe probability \
+that a host is encountered is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"(", 
+    RowBox[{"1", "-", 
+     SuperscriptBox["e", 
+      RowBox[{
+       RowBox[{"-", "\[CapitalSigma]"}], " ", 
+       SubscriptBox["\[Beta]", "i"], 
+       SubscriptBox["H", "i"], "\[CapitalDelta]t"}]]}], ")"}], 
+   TraditionalForm]]],
+ ". Given that a host is encountered, the expected gain in fitness depends on \
+the fitness gain for each host weighted by the probability that it was that \
+host that was parasitized, and weighted by the probability that the parasite \
+didn\[CloseCurlyQuote]t die during handling. So the probability of \
+encountering host 1 is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"(", 
+    RowBox[{"1", "-", 
+     SuperscriptBox["e", 
+      RowBox[{
+       RowBox[{"-", 
+        SubscriptBox["\[Beta]", "1"]}], 
+       SubscriptBox["H", "1"]}]]}], ")"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", the profitability of that host is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    SubscriptBox["\[Lambda]", "1"], "/", 
+    SubscriptBox["\[Mu]", "1"]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", and the probability the parasite dies during handling is \n\nthe expected \
+reproductive success is unchanged ",
+ StyleBox["W",
+  FontSlant->"Italic"],
+ ", unless you die. Death happens with probability, so the parasite will \
+survive for \[CapitalDelta]t time units with probability ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    SuperscriptBox["e", 
+     RowBox[{
+      RowBox[{"-", "\[CapitalSigma]"}], " ", 
+      SubscriptBox["\[Beta]", "j"], 
+      SubscriptBox["H", "j"]}]], "(", 
+    RowBox[{"1", "-", 
+     SuperscriptBox["e", 
+      RowBox[{
+       RowBox[{"-", "\[Gamma]"}], " ", "\[CapitalDelta]t"}]]}], ")"}], 
+   TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". If the parasite does encounter a host, if it parasitizes the host it \
+gains an amount ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["E", "i"], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " towards its fitness, assuming it survives. "
+}], "Text",
+ CellChangeTimes->{{3.6634676405730457`*^9, 3.663467823235733*^9}, {
+  3.66346787791658*^9, 3.66346799546513*^9}, {3.663468032127095*^9, 
+  3.663468239525989*^9}, {3.663468278075547*^9, 3.663468313367268*^9}, {
+  3.6634683569487753`*^9, 3.663468453005094*^9}, {3.663468489865836*^9, 
+  3.663468554462455*^9}, {3.663468586310763*^9, 3.663468725446706*^9}, {
+  3.663468776808984*^9, 3.663468856600298*^9}, {3.663469059319009*^9, 
+  3.6634692046946173`*^9}, {3.6634692501258907`*^9, 3.663469319003949*^9}, {
+  3.6634693571393957`*^9, 3.66346936000702*^9}}],
+
+Cell[BoxData[
+ RowBox[{"W", " ", "\[Equal]", 
+  RowBox[{"(", 
+   RowBox[{"1", "-"}]}]}]], "Input",
+ CellChangeTimes->{{3.6634672464173527`*^9, 3.6634672654418716`*^9}}]
+}, Open  ]]
 },
-WindowSize->{1128, 1341},
-WindowMargins->{{Automatic, 29}, {Automatic, 0}},
+WindowSize->{811, 1341},
+WindowMargins->{{48, Automatic}, {Automatic, 0}},
 FrontEndVersion->"10.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (October 9, \
 2015)",
 StyleDefinitions->"Default.nb"
@@ -2703,22 +2884,22 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[CellGroupData[{
-Cell[580, 22, 279, 5, 35, "Subsubsection"],
+Cell[580, 22, 279, 5, 59, "Subsubsection"],
 Cell[862, 29, 3885, 117, 225, "Input"],
-Cell[4750, 148, 1474, 27, 203, "Text"],
+Cell[4750, 148, 1474, 27, 262, "Text"],
 Cell[CellGroupData[{
-Cell[6249, 179, 3793, 103, 131, "Input"],
+Cell[6249, 179, 3793, 103, 250, "Input"],
 Cell[10045, 284, 5204, 151, 133, "Output"]
 }, Open  ]],
-Cell[15264, 438, 556, 9, 30, "Text"],
+Cell[15264, 438, 556, 9, 49, "Text"],
 Cell[CellGroupData[{
 Cell[15845, 451, 336, 10, 28, "Input"],
 Cell[16184, 463, 732, 21, 47, "Output"]
 }, Open  ]],
-Cell[16931, 487, 1751, 50, 112, "Text"],
+Cell[16931, 487, 1751, 50, 171, "Text"],
 Cell[CellGroupData[{
 Cell[18707, 541, 303, 8, 28, "Input"],
-Cell[19013, 551, 3489, 88, 133, "Output"]
+Cell[19013, 551, 3489, 88, 178, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[22539, 644, 264, 7, 28, "Input"],
@@ -2770,13 +2951,13 @@ Cell[54674, 1623, 1173, 34, 69, "Output"]
 Cell[55862, 1660, 164, 3, 30, "Text"],
 Cell[56029, 1665, 2949, 87, 191, "Input"],
 Cell[CellGroupData[{
-Cell[59003, 1756, 7314, 191, 233, "Input"],
+Cell[59003, 1756, 7314, 191, 386, "Input"],
 Cell[66320, 1949, 3063, 91, 126, "Output"],
 Cell[69386, 2042, 1143, 31, 74, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[70566, 2078, 263, 7, 28, "Input"],
-Cell[70832, 2087, 996, 28, 48, "Output"]
+Cell[70832, 2087, 996, 28, 85, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[71865, 2120, 1313, 37, 63, "Input"],
@@ -2785,7 +2966,7 @@ Cell[73181, 2159, 95, 1, 28, "Output"]
 Cell[CellGroupData[{
 Cell[73313, 2165, 374, 10, 46, "Input"],
 Cell[73690, 2177, 1687, 47, 108, "Output"],
-Cell[75380, 2226, 1505, 42, 69, "Output"]
+Cell[75380, 2226, 1505, 42, 133, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[76922, 2273, 214, 5, 28, "Input"],
@@ -2793,7 +2974,7 @@ Cell[77139, 2280, 156, 4, 75, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[77332, 2289, 403, 11, 35, "Input"],
-Cell[77738, 2302, 99, 1, 62, "Output"]
+Cell[77738, 2302, 99, 1, 28, "Output"]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
@@ -2822,7 +3003,12 @@ Cell[85390, 2549, 2189, 58, 97, "Output"],
 Cell[87582, 2609, 1692, 49, 69, "Output"]
 }, Open  ]],
 Cell[89289, 2661, 801, 23, 93, "Text"]
-}, Closed]]
+}, Closed]],
+Cell[CellGroupData[{
+Cell[90127, 2689, 182, 4, 29, "Subsubsection"],
+Cell[90312, 2695, 5976, 164, 497, "Text"],
+Cell[96291, 2861, 168, 4, 28, "Input"]
+}, Open  ]]
 }
 ]
 *)
