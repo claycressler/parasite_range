@@ -57,6 +57,7 @@
 \usepackage{rotating}
 \usepackage{subfig}
 \usepackage{color}
+\usepackage{verbatim}
 \newcommand{\aak}[1]{\textcolor{cyan}{#1}}
 \newcommand{\mab}[1]{\textcolor{red}{#1}}
 \newcommand{\cec}[1]{\textcolor{blue}{#1}}
@@ -144,11 +145,11 @@ In the absence of infection, both host populations grow logistically at per-capi
 Both susceptible and infected individuals are assumed to have equal birth rates, and all individuals are born susceptible.
 The infection rates per parasite in the environment are $\beta_1$ and $\beta_2$; note that we assume that all parasites in the environment are equivalent (that is, it doesn't matter whether the parasite was shed from host 1 or host 2).
 I also assume that $\beta_1$ and $\beta_2$ are determined by the host, not the parasite - the parasite is passive in the environment.
-In some circumstances, it might make more sense to assume that parasites shed from host 1 have a higher transmission rate in host 1 (if, for example, the two hosts have slightly different environmental preferences; \cite{Fenton2015}).
+In some circumstances, it might make more sense to assume that parasites shed from host 1 have a higher transmission rate in host 1 (if, for example, the two hosts have slightly different environmental preferences; Fenton et al. 2015).
 Infected hosts suffer mortality due to natural causes at the rates $\mu_1$ and $\mu_2$ and due to infection at the rates $\nu_1$ and $\nu_2$.
 Infected hosts shed parasites into the environment at the rates $\lambda_1$ and $\lambda_2$, and these are lost at the rate $\delta$.
 
-The $R_0$ for a parasite invading a fully susceptible host community will be \citep{Dobson2004,Fenton2015}:
+The $R_0$ for a parasite invading a fully susceptible host community will be (Dobson 2004, Fenton et al. 2015):
 \begin{equation}
 R_0 = \sqrt{\frac{\lambda_1 \beta_1 K_1}{\gamma(\mu_1 + \nu_1)} + \frac{\lambda_2 \beta_2 K_2}{\gamma(\mu_2 + \nu_2)}}.
 \end{equation}
@@ -175,78 +176,83 @@ where $\hat{S}_1$ and $\hat{S}_2$ are the equilibrium abundances of susceptible 
 The key to making this analysis interesting are the potential trade-offs between traits that might affect the number of hosts utilized by the parasite.
 In particular, let's define $\eta$ to be the number of hosts the parasite utilizes.
 Effects of $\eta$ on other parameters of the model that might be interesting to consider are:
-\begin{itemize}
+\begin{enumerate}
 \item a trade-off between $\eta$ and $\lambda_i$: the more hosts the parasite infects, the less its shedding rate in each host;
 \item a trade-off between $\eta$ and $\nu_i$: the more hosts the parasite infects, the greater its virulence in each host;
 \item a trade-off between $\eta$ and $\gamma$: the more hosts a parasite infects, the less hardy each parasite is in the environment;
 \item a trade-off between $\eta$ and $\beta_i$: the more hosts a parasite infects, the less transmissible each parasite is.
-\end{itemize}
+\end{enumerate}
 Any of these trade-offs might be interesting to explore, as each seems biologically reasonable: the first essentially posits that transmitting to many hosts compromises within-host replication ability; the third and fourth essentially posit that transmitting to many hosts compromises the quality or viability of parasites in the environment; the second is probably the most tenuous, positing that transmitting to many hosts makes the parasite more harmful to each one.
 More complicated relationships could also be considered: for example, if increasing the number of infected hosts decreases within-host replication, then increasing $\eta$ might simultaneously decrease $\lambda_i$ and $\nu_i$ (a classic transmission--virulence trade-off controlled by the parasite's generality).
 
 This evolutionary model can help us make predictions about how ecological conditions might affect the evolution of generality.
 For example, the invasion criterion (Eq. \ref{eq:invasion}) can be rearranged to yield
 \begin{equation}
-\sqrt{\frac{\lambda_1 \beta_1 \hat{S}_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 \hat{S}_2}{\mu_2 + \nu_2} + \frac{\lambda_3 \beta_3 K_3}{\mu_3 + \nu_3}} > sqrt{\gamma}.
+\sqrt{\frac{\lambda_1 \beta_1 \hat{S}_1}{\mu_1 + \nu_1} + \frac{\lambda_2 \beta_2 \hat{S}_2}{\mu_2 + \nu_2} + \frac{\lambda_3 \beta_3 K_3}{\mu_3 + \nu_3}} > \sqrt{\gamma}.
 \end{equation}
 Thus, the higher the mortality rate in the environment, the harder it will be for a mutant parasite that infects more hosts to invade.
 This suggests that parasites living in high-mortality environments might be more likely to be specialists.
 
 \section{Ecology of parasite preference}
-The ecological approach is slightly different, in that it takes many things as given and has less concern about dynamics.
-In particular, this approach is based on classic optimal foraging theory \citep{Charnov1976}.
-Classic optimal foraging theory deals with prey selection by a predator.
-It assumes that there are many different prey items that could potentially be included in the diet, $i = 1, \dots, n$.
+The ecological approach is based on classic optimal foraging theory (Charnov 1976), which deals with the question of diet breadth of a predator.
+There are many different prey items that could potentially be included in the diet of a predator, $i = 1, \dots, N$.
 Each prey item has a profitability to the predator of $E_i$ (which can be thought of as the energy content of the prey).
 The search time (or, inversely, the encounter rate) for prey type $i$ is $s_i$.
-The handling time for prey time $i$ is $h_i$.
-The prey types are ordered in decreasing profitability, so $E_1/h_1 > E_2/h_2 > E_3/h_3 > \dots$.
+The handling time for prey type $i$ is $h_i$.
+The prey types can be ordered in decreasing profitability, so $E_1/h_1 > E_2/h_2 > E_3/h_3 > \dots > E_N/h_N$.
 Assume that the predator currently predates on prey types 1 thru $n$ - should it include the $(n+1)^{\text{th}}$ prey item?
 Optimal foraging theory says that this prey item will be included if
 \begin{equation}\label{eq:OFT}
-\frac{E_{n+1}}{h_{n+1}} > \frac{\bar{E}}{\bar{h} + \bar{s}}.
+\frac{E_{n+1}}{h_{n+1}} > \frac{\bar{E}}{\bar{h} + \bar{s}},
 \end{equation}
+where $\bar{E}$ is the average profitability of items already in the diet, $\bar{h}$ is the average handling time of items already in the diet, and $\bar{s}$ is the average search time to find an item in the diet.
 The intuition behind this equation is as follows: imagine that the predator has encountered an individual of type $n+1$: should it eat it or keep searching for other prey items?
 It should it eat it only if the rate it gains energy from that prey item (the profitability divided by the time to handle it) is greater than the average rate it gains energy from searching for and handling all other items in the diet.
+A note to the particularly savvy: I realize I am playing a bit fast and loose with the analytical form of the optimal foraging prediction equation.
+\begin{comment}
+What I am showing is essentially the optimal foraging theory prediction if a predator
+The form of the equation I have shown is essentially the per-prey-item prediction.
+However, because optimal foraging theory deals with predators, a single predator will potentially encounter many prey in a given period of time, so technically the prediction should include information about how many prey of each type will be encountered.
+A parasite, however, needs only to encounter a single host (which it will infect, or not), so the per-prey-item form makes sense.
+\end{comment}
 
 It remains to relate these to parameters to the situation of an environmentally tranmsitted parasite.
-Although this particular question has not been tackled, other authors have considered applying optimal foraging theory to parasitoids \citep{Iwasa1984,Charnov1988} and lytic phages \citep{Guyader2008}.
-The following is my best first attempt at making this relation.
-Let's consider the processes we want to include in the model.
-To start as simply as possible, let's assume that the profitability is the shedding rate times the duration of infection, the search time depends on the transmission (encounter) rate and the abundance of the host (which we will assume is constant), and the handling time depends on the development rate of the parasite (assuming that eggs are ingested from the environment and must develop from larvae into adults before shedding begins).
-Let $\lambda_i$ be the shedding rate from host $i$; let $\mu_i$ be the mortality rate of host $i$; let $\beta_i$ be the encounter rate with host $i$; let $H_i$ be the abundance of host $i$; and let $\gamma_i$ be the development rate of the parasite.
+Although this particular question has not been tackled, other authors have considered applying optimal foraging theory to parasitoids (Iwasa et al. 1984, Charnov and Stephens 1988) and lytic phages (Guyader and Burch 2008).
+The following is my first attempt at making this relation.
+
+To start as simply as possible, let's assume that the profitability depends on the shedding rate and the duration of infection, the search time depends on the transmission (encounter) rate and the abundance of the host (which we will assume is constant), and the handling time depends on the development rate of the parasite (assuming that eggs are ingested from the environment and must develop from larvae into adults before shedding begins).
+Let $\lambda_i$ be the shedding rate from host $i$; let $\mu_i$ be the mortality rate of host $i$; let $\beta_i$ be the encounter rate with host $i$; let $H_i$ be the abundance of host $i$; and let $\sigma_i$ be the development rate of the parasite.
 Then
 \begin{align}
-E_i &= \frac{\lambda_i}{\mu_i}\frac{\gamma_i}{\gamma_i+\mu_i}, \\
+E_i &= \frac{\lambda_i}{\mu_i}, \\
 s_i &= \frac{1}{\beta_i H_i}, \\
-h_i &= \frac{1}{\gamma_i}.
+h_i &= \frac{1}{\sigma_i}.
 \end{align}
-Note that the profitability is scaled by the probability that the parasite matures before the host dies $(\gamma_i/(\gamma_i+\mu_i))$.
 
 Under this very simple model, the $(n+1)^{\text{th}}$ host will be included if (refer to \ref{eq:OFT}):
 \begin{equation}
-\frac{\lambda_{n+1} \gamma_{n+1}^2}{\mu_{n+1} (\gamma_{n+1}+\mu_{n+1})} > \frac{\sum_{i=1}^n \frac{lambda_i}{\mu_i}\frac{\gamma_i}{\gamma_i+\mu_i}}{1/\sum_{i=1}^n \beta_i H_i + 1/\sum_{i=1}^n \gamma_i}.
+\frac{\lambda_{n+1} \sigma_{n+1}}{\mu_{n+1}} > \frac{\sum_{i=1}^n \frac{\lambda_i}{\mu_i}}{\frac{1}{\sum_{i=1}^n \beta_i H_i} + \frac{1}{\sum_{i=1}^n \sigma_i}}.
 \end{equation}
+Even under this simple model, however, we can begin to make some predictions, and what I like about this model is that I feel like it might be easier to relate these predictions back to the traits of the parasite.
+For example, parasites with long development rates (large $\sigma_i$: larger-bodied parasites, perhaps?) are more likely to be generalists.
+Parasites infecting short-lived hosts, on the other hand (large $\mu_i$), are likely to be specialists.
+The greater then number of hosts around, the more likely a parasite is to be a specialist, so parasites inhabiting eutrophic environments may be more likely to be specialists.
 
-\begin{enumerate}
-\item The profitability of a host is the parasite shedding rate from that host ($\lambda_i$) times the expected duration of an infection. In general, infections can end three ways (from the perspective of the parasite):
-\begin{enumerate}
-\item the host could die (at a rate $\mu_i$);
-\item the host could recover (at a rate $\gamma_i$);
-\item the parasite could be displaced by competitively superior parasite. This seems like a worthwhile consideration, since competitive dominance in coinfection seems likely to influence whether a parasite is a generalist or specialist. The rate that a parasite is displaced by a competitive dominant depends on the rate that such parasites are encountered $\beta_i \sum_j P_j$, where $\beta_i$ is the encounter rate of the host with parasites in the environment and $sum_j P_j$ is the total abundance of competitively dominant parasites in the environment.
-\end{enumerate}
-Thus, the profitability of host $i$ is
-\begin{equation}
-E_i = \frac{\lambda_i}{\mu_i + \gamma_i + \beta_i \sum_j P_j}.
-\end{equation}
-\item The expected search time for host type $i$ is $(\beta_i H_i)^{-1}$.
-\item The handling time for host type $i$ depends on the development rate of the parasite. I am assuming we are dealing with a helminth parasite, so eggs are what is encountered and the parasite must hatch and go through its juvenile period before it actually profits from the host. Let $\alpha_i$ be the development rate of the parasite in host $i$.
-\end{enumerate}
-This almost specifies the model, but we haven't considered the possibility of mortality during
-e helminths parasites, where eggs are ingested from the environment and there is a
+Moreover, this model can be extended in couple of interesting ways.
+For example, we could assume that the parasite can only infect uninfected hosts, in which case we might multiply $H_i$ by $1-P_i$, where $P_i$ is the prevalence of infection in host $i$.
+This would affect the likely of specialism vs generalism, because if the prevalence of infection is very high, generalism becomes much more likely.
+We could extend this idea a bit further by considering competitive dominance of the parasite: perhaps $P_i$ is not the prevalence of infection by the focal parasite in host $i$, but is instead the prevalence of competitively-dominant parasites.
+In such a case, we would predict that parasites that are competitively inferior should be generalists.
 
+We can also extend the model to consider mortality.
+For example, the parasite might die while searching for a host (the parameter $\gamma$ in the evolutionary model).
+The parasite might also die while ``handling'' the host (developing from egg to adult).
+In particular, we might want to consider that parasites are especially senstive to being cleared by the host immune system during this period (or displaced by a competitive dominant).
+Adding mortality to the model is slightly more complicated, since the basic theory developed for parasitoids and predators doesn't quite apply.
+I am still working on adding mortality to the model, but I wanted to outline the basic optimal foraging theory approach to solicit feedback on it.
+In particular, \textbf{what parasite traits and processes will affect the search time, handling time, and profitability of each host type?}
 
 \bibliographystyle{ecology}
-\bibliography{~/Dropbox/Papers/library.bib}
+\bibliography{library.bib}
 
 \end{document}
