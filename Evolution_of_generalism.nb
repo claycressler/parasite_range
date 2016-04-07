@@ -1,0 +1,1516 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     50800,       1507]
+NotebookOptionsPosition[     48549,       1429]
+NotebookOutlinePosition[     48907,       1445]
+CellTagsIndexPosition[     48864,       1442]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["A two-host, environmental-transmission model", "Subsubsection",
+ CellChangeTimes->{{3.6623115513113623`*^9, 3.6623115586122026`*^9}}],
+
+Cell[TextData[{
+ "This model assumes environmental transmission, but where the parasite \
+actively seeks out hosts. Contact is thus controlled by the parasite (so ",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["\[Beta]", "i"], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " can quantify both the contact and infection processes), and contact is \
+assumed to remove parasites from the environment. I will assume that the \
+resident parasite strain exploits a single host and ask whether a mutant that \
+can exploit both hosts can invade if \[OpenCurlyDoubleQuote]generalism\
+\[CloseCurlyDoubleQuote] comes at a cost of reducing the shedding rate from \
+both hosts. Let the parameter ",
+ StyleBox["a",
+  FontSlant->"Italic"],
+ " quantify the cost of generalism. I am going to explore the consequence of \
+varying the carrying capacity and host mortality rate on the evolution of \
+generalism. As such, I will let ",
+ StyleBox["K",
+  FontSlant->"Italic"],
+ " be the carrying capacity of the first host and ",
+ StyleBox["kK",
+  FontSlant->"Italic"],
+ " be the carrying capacity of the second host; similarly, ",
+ Cell[BoxData[
+  FormBox["\[Mu]", TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " and ",
+ StyleBox["m",
+  FontSlant->"Italic"],
+ "\[Mu] will be the mortality rates for hosts 1 and 2, respectively. For \
+simplicity, I will assume that all other parameters (traits) are equal \
+between the hosts and parasites."
+}], "Text",
+ CellChangeTimes->{{3.669035056961762*^9, 3.669035103368224*^9}, {
+  3.669035235955372*^9, 3.669035306611228*^9}, {3.669035542928849*^9, 
+  3.6690355947478867`*^9}, {3.6690356288708057`*^9, 3.6690356746377497`*^9}, {
+  3.669036862082342*^9, 3.669036875312786*^9}, {3.669036971505083*^9, 
+  3.669036979605044*^9}, {3.669038491255166*^9, 3.669038561334751*^9}, {
+  3.669041995730934*^9, 3.6690421132086477`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dS1dt", "=", 
+   RowBox[{
+    RowBox[{"r1", " ", 
+     RowBox[{"(", 
+      RowBox[{"S1", "+", "I1r", "+", "I1m"}], ")"}], " ", 
+     RowBox[{"(", 
+      RowBox[{"1", "-", 
+       FractionBox[
+        RowBox[{"(", 
+         RowBox[{"S1", "+", "I1r", "+", "I1m"}], ")"}], "K"]}], ")"}]}], "-", 
+    
+    RowBox[{"\[Beta]", " ", "S1", " ", 
+     RowBox[{"(", 
+      RowBox[{"Pr", "+", "Pm"}], ")"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dS2dt", "=", 
+   RowBox[{
+    RowBox[{"r2", " ", 
+     RowBox[{"(", 
+      RowBox[{"S2", "+", "I2r", "+", "I2m"}], ")"}], " ", 
+     RowBox[{"(", 
+      RowBox[{"1", "-", 
+       FractionBox[
+        RowBox[{"(", 
+         RowBox[{"S2", "+", "I2r", "+", "I2m"}], ")"}], 
+        RowBox[{"k", " ", "K"}]]}], ")"}]}], "-", 
+    RowBox[{"\[Beta]", " ", "S2", " ", 
+     RowBox[{"(", 
+      RowBox[{"Pr", "+", "Pm"}], ")"}]}]}]}], ";", 
+  RowBox[{"dI1rdt", "=", 
+   RowBox[{
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pr"}], "-", 
+    RowBox[{"\[Mu]", " ", "I1r"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dPrdt", "=", 
+   RowBox[{
+    RowBox[{"\[Lambda]", " ", "I1r"}], "+", 
+    RowBox[{"\[Lambda]", " ", "I2r"}], "-", 
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pr"}], "-", 
+    RowBox[{"\[Gamma]", " ", "Pr"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dI1mdt", "=", 
+   RowBox[{
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pm"}], "-", 
+    RowBox[{"\[Mu]", " ", "I1m"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dI2mdt", "=", 
+   RowBox[{
+    RowBox[{"\[Beta]", " ", "S2", " ", "Pm"}], "-", 
+    RowBox[{"m", " ", "\[Mu]", " ", "I2m"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dPmdt", "=", 
+   RowBox[{
+    RowBox[{"a", " ", "\[Lambda]", " ", 
+     RowBox[{"(", 
+      RowBox[{"I1m", "+", "I2m"}], ")"}]}], "-", 
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pm"}], "-", 
+    RowBox[{"\[Beta]", " ", "S2", " ", "Pm"}], "-", 
+    RowBox[{"\[Gamma]", " ", "Pm"}]}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.662311601194788*^9, 3.6623116582998962`*^9}, {
+   3.6623117051785192`*^9, 3.6623118733985567`*^9}, {3.662312467963297*^9, 
+   3.6623124689303617`*^9}, {3.6623132013273373`*^9, 3.66231324112888*^9}, {
+   3.6623133379475737`*^9, 3.662313344528846*^9}, {3.662313671801676*^9, 
+   3.662313691005127*^9}, {3.66903519109103*^9, 3.669035231567892*^9}, 
+   3.6690356854610567`*^9, {3.669036848571827*^9, 3.66903685339715*^9}, {
+   3.669036986479336*^9, 3.669037109390637*^9}, {3.669038564844949*^9, 
+   3.669038654927792*^9}, 3.669040237101508*^9, {3.669042115560008*^9, 
+   3.6690421278790903`*^9}, 3.669042235501273*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"J", "=", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS1dt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dS2dt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1rdt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPrdt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI1mdt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dI2mdt", ",", "Pm"}], "]"}]}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "S1"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "S2"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "I1r"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "Pr"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "I1m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "I2m"}], "]"}], ",", 
+        RowBox[{"D", "[", 
+         RowBox[{"dPmdt", ",", "Pm"}], "]"}]}], "}"}]}], "}"}], "/.", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"I1m", "\[Rule]", "0"}], ",", 
+      RowBox[{"I2m", "\[Rule]", "0"}], ",", 
+      RowBox[{"Pm", "\[Rule]", "0"}]}], "}"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"MatrixForm", "[", "J", "]"}], "\[IndentingNewLine]", 
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "The", " ", "eigenvalues", " ", "of", " ", "this", " ", "matrix", " ", 
+    "determine", " ", "the", " ", "stability", " ", "of", " ", "the", " ", 
+    "system", " ", "when", " ", "the", " ", "mutant", " ", "parasite", " ", 
+    "is", " ", "absent"}], " ", "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"MatrixForm", "[", 
+   RowBox[{"J", "[", 
+    RowBox[{"[", 
+     RowBox[{
+      RowBox[{"1", ";;", "4"}], ",", 
+      RowBox[{"1", ";;", "4"}]}], "]"}], "]"}], "]"}], "\[IndentingNewLine]", 
+  
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "The", " ", "eigenvalues", " ", "of", " ", "this", " ", "matrix", " ", 
+    "determine", " ", "whether", " ", "the", " ", "mutant", " ", "parasite", 
+    " ", "can", " ", "invade"}], " ", "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{"MatrixForm", "[", 
+  RowBox[{"J", "[", 
+   RowBox[{"[", 
+    RowBox[{
+     RowBox[{"5", ";;", "7"}], ",", 
+     RowBox[{"5", ";;", "7"}]}], "]"}], "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.662311901818063*^9, 3.662312008039783*^9}, {
+   3.662312435134857*^9, 3.662312667312045*^9}, {3.662312838167706*^9, 
+   3.662313055537768*^9}, {3.662313297300918*^9, 3.662313301980291*^9}, 
+   3.6623133610444117`*^9, {3.669037133558826*^9, 3.6690372557711267`*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"(", "\[NoBreak]", GridBox[{
+     {
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r1", " ", 
+          RowBox[{"(", 
+           RowBox[{"I1r", "+", "S1"}], ")"}]}], "K"]}], "+", 
+       RowBox[{"r1", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I1r", "+", "S1"}], "K"]}], ")"}]}], "-", 
+       RowBox[{"Pr", " ", "\[Beta]"}]}], "0", 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r1", " ", 
+          RowBox[{"(", 
+           RowBox[{"I1r", "+", "S1"}], ")"}]}], "K"]}], "+", 
+       RowBox[{"r1", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I1r", "+", "S1"}], "K"]}], ")"}]}]}], 
+      RowBox[{
+       RowBox[{"-", "S1"}], " ", "\[Beta]"}], 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r1", " ", 
+          RowBox[{"(", 
+           RowBox[{"I1r", "+", "S1"}], ")"}]}], "K"]}], "+", 
+       RowBox[{"r1", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I1r", "+", "S1"}], "K"]}], ")"}]}]}], "0", 
+      RowBox[{
+       RowBox[{"-", "S1"}], " ", "\[Beta]"}]},
+     {"0", 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r2", " ", 
+          RowBox[{"(", 
+           RowBox[{"I2r", "+", "S2"}], ")"}]}], 
+         RowBox[{"k", " ", "K"}]]}], "+", 
+       RowBox[{"r2", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I2r", "+", "S2"}], 
+           RowBox[{"k", " ", "K"}]]}], ")"}]}], "-", 
+       RowBox[{"Pr", " ", "\[Beta]"}]}], "0", 
+      RowBox[{
+       RowBox[{"-", "S2"}], " ", "\[Beta]"}], "0", 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r2", " ", 
+          RowBox[{"(", 
+           RowBox[{"I2r", "+", "S2"}], ")"}]}], 
+         RowBox[{"k", " ", "K"}]]}], "+", 
+       RowBox[{"r2", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I2r", "+", "S2"}], 
+           RowBox[{"k", " ", "K"}]]}], ")"}]}]}], 
+      RowBox[{
+       RowBox[{"-", "S2"}], " ", "\[Beta]"}]},
+     {
+      RowBox[{"Pr", " ", "\[Beta]"}], "0", 
+      RowBox[{"-", "\[Mu]"}], 
+      RowBox[{"S1", " ", "\[Beta]"}], "0", "0", "0"},
+     {
+      RowBox[{
+       RowBox[{"-", "Pr"}], " ", "\[Beta]"}], "0", "\[Lambda]", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "S1"}], " ", "\[Beta]"}], "-", "\[Gamma]"}], "0", "0", 
+      "0"},
+     {"0", "0", "0", "0", 
+      RowBox[{"-", "\[Mu]"}], "0", 
+      RowBox[{"S1", " ", "\[Beta]"}]},
+     {"0", "0", "0", "0", "0", 
+      RowBox[{
+       RowBox[{"-", "m"}], " ", "\[Mu]"}], 
+      RowBox[{"S2", " ", "\[Beta]"}]},
+     {"0", "0", "0", "0", 
+      RowBox[{"a", " ", "\[Lambda]"}], 
+      RowBox[{"a", " ", "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "S1"}], " ", "\[Beta]"}], "-", 
+       RowBox[{"S2", " ", "\[Beta]"}], "-", "\[Gamma]"}]}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Center}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[0.7]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}], "\[NoBreak]", ")"}],
+  Function[BoxForm`e$, 
+   MatrixForm[BoxForm`e$]]]], "Output",
+ CellChangeTimes->{
+  3.662312597655676*^9, 3.662312667568604*^9, {3.662312981627554*^9, 
+   3.662313005357707*^9}, {3.662313290889618*^9, 3.662313302348597*^9}, {
+   3.662313350635303*^9, 3.6623133614626493`*^9}, 3.662313702641608*^9, 
+   3.669037140966462*^9, {3.669037193812312*^9, 3.669037225063802*^9}, 
+   3.669037256963358*^9, 3.6690386594752913`*^9, 3.669038759181664*^9, 
+   3.6690402394076567`*^9, {3.66904215940254*^9, 3.669042163338194*^9}, 
+   3.6690422376707478`*^9}],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"(", "\[NoBreak]", GridBox[{
+     {
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r1", " ", 
+          RowBox[{"(", 
+           RowBox[{"I1r", "+", "S1"}], ")"}]}], "K"]}], "+", 
+       RowBox[{"r1", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I1r", "+", "S1"}], "K"]}], ")"}]}], "-", 
+       RowBox[{"Pr", " ", "\[Beta]"}]}], "0", 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r1", " ", 
+          RowBox[{"(", 
+           RowBox[{"I1r", "+", "S1"}], ")"}]}], "K"]}], "+", 
+       RowBox[{"r1", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I1r", "+", "S1"}], "K"]}], ")"}]}]}], 
+      RowBox[{
+       RowBox[{"-", "S1"}], " ", "\[Beta]"}]},
+     {"0", 
+      RowBox[{
+       RowBox[{"-", 
+        FractionBox[
+         RowBox[{"r2", " ", 
+          RowBox[{"(", 
+           RowBox[{"I2r", "+", "S2"}], ")"}]}], 
+         RowBox[{"k", " ", "K"}]]}], "+", 
+       RowBox[{"r2", " ", 
+        RowBox[{"(", 
+         RowBox[{"1", "-", 
+          FractionBox[
+           RowBox[{"I2r", "+", "S2"}], 
+           RowBox[{"k", " ", "K"}]]}], ")"}]}], "-", 
+       RowBox[{"Pr", " ", "\[Beta]"}]}], "0", 
+      RowBox[{
+       RowBox[{"-", "S2"}], " ", "\[Beta]"}]},
+     {
+      RowBox[{"Pr", " ", "\[Beta]"}], "0", 
+      RowBox[{"-", "\[Mu]"}], 
+      RowBox[{"S1", " ", "\[Beta]"}]},
+     {
+      RowBox[{
+       RowBox[{"-", "Pr"}], " ", "\[Beta]"}], "0", "\[Lambda]", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "S1"}], " ", "\[Beta]"}], "-", "\[Gamma]"}]}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Center}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[0.7]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}], "\[NoBreak]", ")"}],
+  Function[BoxForm`e$, 
+   MatrixForm[BoxForm`e$]]]], "Output",
+ CellChangeTimes->{
+  3.662312597655676*^9, 3.662312667568604*^9, {3.662312981627554*^9, 
+   3.662313005357707*^9}, {3.662313290889618*^9, 3.662313302348597*^9}, {
+   3.662313350635303*^9, 3.6623133614626493`*^9}, 3.662313702641608*^9, 
+   3.669037140966462*^9, {3.669037193812312*^9, 3.669037225063802*^9}, 
+   3.669037256963358*^9, 3.6690386594752913`*^9, 3.669038759181664*^9, 
+   3.6690402394076567`*^9, {3.66904215940254*^9, 3.669042163338194*^9}, 
+   3.66904223767829*^9}],
+
+Cell[BoxData[
+ TagBox[
+  RowBox[{"(", "\[NoBreak]", GridBox[{
+     {
+      RowBox[{"-", "\[Mu]"}], "0", 
+      RowBox[{"S1", " ", "\[Beta]"}]},
+     {"0", 
+      RowBox[{
+       RowBox[{"-", "m"}], " ", "\[Mu]"}], 
+      RowBox[{"S2", " ", "\[Beta]"}]},
+     {
+      RowBox[{"a", " ", "\[Lambda]"}], 
+      RowBox[{"a", " ", "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "S1"}], " ", "\[Beta]"}], "-", 
+       RowBox[{"S2", " ", "\[Beta]"}], "-", "\[Gamma]"}]}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Center}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[0.7]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}], "\[NoBreak]", ")"}],
+  Function[BoxForm`e$, 
+   MatrixForm[BoxForm`e$]]]], "Output",
+ CellChangeTimes->{
+  3.662312597655676*^9, 3.662312667568604*^9, {3.662312981627554*^9, 
+   3.662313005357707*^9}, {3.662313290889618*^9, 3.662313302348597*^9}, {
+   3.662313350635303*^9, 3.6623133614626493`*^9}, 3.662313702641608*^9, 
+   3.669037140966462*^9, {3.669037193812312*^9, 3.669037225063802*^9}, 
+   3.669037256963358*^9, 3.6690386594752913`*^9, 3.669038759181664*^9, 
+   3.6690402394076567`*^9, {3.66904215940254*^9, 3.669042163338194*^9}, 
+   3.669042237685058*^9}]
+}, Open  ]],
+
+Cell["Defining F and V:", "Text",
+ CellChangeTimes->{{3.66231338466796*^9, 3.662313388784811*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"F", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0", ",", 
+       RowBox[{"S1", " ", "\[Beta]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0", ",", 
+       RowBox[{"S2", " ", "\[Beta]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"a", " ", "\[Lambda]"}], ",", 
+       RowBox[{"a", " ", "\[Lambda]"}], ",", "0"}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"V", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"\[Mu]", ",", "0", ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", 
+       RowBox[{"m", " ", "\[Mu]"}], ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "0", ",", 
+       RowBox[{
+        RowBox[{"S1", " ", "\[Beta]"}], "+", 
+        RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]}], "}"}]}], "}"}]}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"J", "[", 
+   RowBox[{"[", 
+    RowBox[{
+     RowBox[{"5", ";;", "7"}], ",", 
+     RowBox[{"5", ";;", "7"}]}], "]"}], "]"}], "\[Equal]", 
+  RowBox[{"F", "-", "V"}]}]}], "Input",
+ CellChangeTimes->{{3.66231339023444*^9, 3.662313412635709*^9}, {
+  3.6623136544320583`*^9, 3.662313663600816*^9}, {3.662313709050727*^9, 
+  3.662313773659049*^9}, {3.669037283492885*^9, 3.669037323701332*^9}, {
+  3.669037461115199*^9, 3.66903746427627*^9}, {3.6690374946209383`*^9, 
+  3.6690375025504303`*^9}, {3.669038771314986*^9, 3.669038795266176*^9}, {
+  3.669042170428567*^9, 3.669042175423641*^9}}],
+
+Cell[BoxData["True"], "Output",
+ CellChangeTimes->{{3.662313765308372*^9, 3.6623137739721518`*^9}, 
+   3.669037324238415*^9, 3.66903746512598*^9, 3.669037504202135*^9, 
+   3.669038797582613*^9, 3.6690421806142473`*^9, 3.6690422418496313`*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"Simplify", "[", 
+  RowBox[{"Dot", "[", 
+   RowBox[{"F", ",", 
+    RowBox[{"Inverse", "[", "V", "]"}]}], "]"}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Eigenvalues", "[", 
+  RowBox[{"Dot", "[", 
+   RowBox[{"F", ",", 
+    RowBox[{"Inverse", "[", "V", "]"}]}], "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.662313777621717*^9, 3.662313781612595*^9}, {
+  3.662315114536285*^9, 3.662315154125278*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     FractionBox[
+      RowBox[{"S1", " ", "\[Beta]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "0", ",", 
+     FractionBox[
+      RowBox[{"S2", " ", "\[Beta]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]"}], "\[Mu]"], ",", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]"}], 
+      RowBox[{"m", " ", "\[Mu]"}]], ",", "0"}], "}"}]}], "}"}]], "Output",
+ CellChangeTimes->{{3.6623151230480137`*^9, 3.662315154405052*^9}, 
+   3.6690375145620747`*^9, 3.669038801316943*^9, 3.6690421844738083`*^9, {
+   3.6690422473903303`*^9, 3.669042252554591*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0", ",", 
+   RowBox[{"-", 
+    FractionBox[
+     RowBox[{
+      SqrtBox["a"], " ", 
+      SqrtBox[
+       RowBox[{
+        RowBox[{"m", " ", "S1"}], "+", "S2"}]], " ", 
+      SqrtBox["\[Beta]"], " ", 
+      SqrtBox["\[Lambda]"]}], 
+     RowBox[{
+      SqrtBox["m"], " ", 
+      SqrtBox[
+       RowBox[{
+        RowBox[{"S1", " ", "\[Beta]"}], "+", 
+        RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]], " ", 
+      SqrtBox["\[Mu]"]}]]}], ",", 
+   FractionBox[
+    RowBox[{
+     SqrtBox["a"], " ", 
+     SqrtBox[
+      RowBox[{
+       RowBox[{"m", " ", "S1"}], "+", "S2"}]], " ", 
+     SqrtBox["\[Beta]"], " ", 
+     SqrtBox["\[Lambda]"]}], 
+    RowBox[{
+     SqrtBox["m"], " ", 
+     SqrtBox[
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]], " ", 
+     SqrtBox["\[Mu]"]}]]}], "}"}]], "Output",
+ CellChangeTimes->{{3.6623151230480137`*^9, 3.662315154405052*^9}, 
+   3.6690375145620747`*^9, 3.669038801316943*^9, 3.6690421844738083`*^9, {
+   3.6690422473903303`*^9, 3.669042252561812*^9}}]
+}, Open  ]],
+
+Cell[TextData[{
+ "The invasion criterion can be rewritten as\n",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      FractionBox[
+       RowBox[{"\[Beta]", " ", 
+        SubscriptBox["S", "1"]}], "\[Mu]"], 
+      FractionBox[
+       RowBox[{"a", " ", "\[Lambda]"}], 
+       RowBox[{
+        RowBox[{"\[Beta]", " ", 
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["S", "1"], "+", 
+           SubscriptBox["S", "2"]}], ")"}]}], "+", "\[Gamma]"}]]}], "+", 
+     RowBox[{
+      FractionBox[
+       RowBox[{"\[Beta]", " ", 
+        SubscriptBox["S", "2"]}], 
+       RowBox[{"m", " ", "\[Mu]"}]], 
+      FractionBox[
+       RowBox[{"a", " ", "\[Lambda]"}], 
+       RowBox[{
+        RowBox[{"\[Beta]", " ", 
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["S", "1"], "+", 
+           SubscriptBox["S", "2"]}], ")"}]}], "+", "\[Gamma]"}]]}]}], ">", 
+    "1"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ".\n\n",
+ Cell[BoxData[
+  FormBox[
+   SubscriptBox["S", "1"], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " is the equilibrium density/abundance of host 1, which is controlled by the \
+resident parasite strain, so ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    SubscriptBox["S", "1"], "=", 
+    FractionBox[
+     RowBox[{"\[Gamma]", " ", "\[Mu]"}], 
+     RowBox[{"\[Beta]", " ", 
+      RowBox[{"(", 
+       RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}]]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". Because the resident parasite does not infect the second host, its \
+abundance at equilibrium is ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    SubscriptBox["S", "2"], "=", 
+    RowBox[{"k", " ", "K"}]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". "
+}], "Text",
+ CellChangeTimes->{{3.669038217744713*^9, 3.669038231503467*^9}, {
+  3.669038268135214*^9, 3.669038460034974*^9}, {3.66903883957064*^9, 
+  3.669038915083617*^9}, {3.669038946541852*^9, 3.6690389601306543`*^9}, {
+  3.6690400404677277`*^9, 3.6690401713417053`*^9}, {3.669040317589192*^9, 
+  3.6690403244158792`*^9}, {3.669040356558948*^9, 3.669040421342202*^9}, {
+  3.6690404569352217`*^9, 3.669040465993833*^9}, {3.6690405129962254`*^9, 
+  3.669040583121875*^9}, {3.669042276373887*^9, 3.669042326404552*^9}, {
+  3.66904235935763*^9, 3.669042384492691*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dS1dt", "=", 
+   RowBox[{
+    RowBox[{"r1", " ", 
+     RowBox[{"(", 
+      RowBox[{"S1", "+", "I1r"}], ")"}], " ", 
+     RowBox[{"(", 
+      RowBox[{"1", "-", 
+       FractionBox[
+        RowBox[{"(", 
+         RowBox[{"S1", "+", "I1r"}], ")"}], "K"]}], ")"}]}], "-", 
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pr"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dI1rdt", "=", 
+   RowBox[{
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pr"}], "-", 
+    RowBox[{"\[Mu]", " ", "I1r"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dPrdt", "=", 
+   RowBox[{
+    RowBox[{"\[Lambda]", " ", "I1r"}], "-", 
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pr"}], "-", 
+    RowBox[{"\[Gamma]", " ", "Pr"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Eq", "=", 
+   RowBox[{"Solve", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"dS1dt", "\[Equal]", "0"}], ",", 
+       RowBox[{"dI1rdt", "\[Equal]", "0"}], ",", 
+       RowBox[{"dPrdt", "\[Equal]", "0"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"S1", ",", "I1r", ",", "Pr"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Eq", "[", 
+  RowBox[{"[", 
+   RowBox[{
+    RowBox[{"1", ";;", "4"}], ",", "1"}], "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.669040337084437*^9, 3.669040348289254*^9}, {
+  3.6690404304409027`*^9, 3.669040432994224*^9}, {3.669042398577126*^9, 
+  3.6690424011642647`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"S1", "\[Rule]", "0"}], ",", 
+   RowBox[{"S1", "\[Rule]", "K"}], ",", 
+   RowBox[{"S1", "\[Rule]", 
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"\[Gamma]", " ", "\[Mu]"}], 
+      RowBox[{"\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]]}]}], ",", 
+   RowBox[{"S1", "\[Rule]", 
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"\[Gamma]", " ", "\[Mu]"}], 
+      RowBox[{"\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]]}]}]}], 
+  "}"}]], "Output",
+ CellChangeTimes->{3.669040348781723*^9, 3.669040435693349*^9, 
+  3.6690424037731037`*^9}]
+}, Open  ]],
+
+Cell["\<\
+We can plug these expressions into the invasion criterion above to simplify \
+it:\
+\>", "Text",
+ CellChangeTimes->{
+  3.669040587003449*^9, {3.6690548620623083`*^9, 3.669054872208592*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Simplify", "[", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", "\[Beta]", " ", "S1"}], 
+      RowBox[{"\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"\[Beta]", 
+          RowBox[{"(", 
+           RowBox[{"S1", "+", "S2"}], ")"}]}], "+", "\[Gamma]"}], ")"}]}]], 
+     "+", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", "\[Beta]", " ", "S2"}], 
+      RowBox[{"m", " ", "\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"\[Beta]", 
+          RowBox[{"(", 
+           RowBox[{"S1", "+", "S2"}], ")"}]}], "+", "\[Gamma]"}], ")"}]}]]}], 
+    ")"}], "/.", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"S1", "\[Rule]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"\[Gamma]", " ", "\[Mu]"}], 
+        RowBox[{"\[Beta]", " ", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]]}]}], ",", " ", 
+     RowBox[{"S2", "\[Rule]", 
+      RowBox[{"k", " ", "K"}]}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.669040596149228*^9, 3.6690406309020042`*^9}, {
+  3.669042426748177*^9, 3.669042451735269*^9}, {3.6690428591687813`*^9, 
+  3.6690428607099123`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"-", 
+  FractionBox[
+   RowBox[{"a", " ", "\[Lambda]", " ", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+      RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+   RowBox[{"m", " ", "\[Mu]", " ", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+      RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], 
+     ")"}]}]]}]], "Output",
+ CellChangeTimes->{{3.669040620313951*^9, 3.669040631271667*^9}, 
+   3.669042453463132*^9, 3.669042862417387*^9}]
+}, Open  ]],
+
+Cell[TextData[{
+ "For invasion to be successful, we require that this expression is greater \
+than one in magnitude. Note that the denominator is positive (if you multiply \
+the negative through) because ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{"\[Lambda]", "-", "\[Mu]"}], ">", "0"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " is required for the resident parasite to persist. Thus, we can multiply \
+the denominator on both sides and rearrange:\n",
+ Cell[BoxData[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+         RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+      RowBox[{"m", " ", "\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], ")"}]}]]}],
+     ">", "1"}], " ", "\[Implies]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"a", " ", "\[Lambda]", " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+        RowBox[{"(", 
+         RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+       RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], ">", 
+    RowBox[{"m", " ", "\[Mu]", " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"\[Gamma]", " ", "\[Lambda]"}], "+", 
+       RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+        RowBox[{"(", 
+         RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}]}], 
+      ")"}]}]}]}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"a", " ", "\[Lambda]"}], "-", 
+     RowBox[{"m", " ", "\[Mu]"}]}], ")"}], 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+      RowBox[{
+      "a", " ", "\[Lambda]", " ", "m", " ", "\[Gamma]", " ", "\[Mu]"}], "-", 
+      RowBox[{"m", " ", "\[Mu]", " ", "\[Gamma]", " ", "\[Lambda]"}]}], ">", 
+     RowBox[{
+      RowBox[{"0", "\[IndentingNewLine]", "k", " ", "K", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"a", " ", "\[Lambda]"}], "-", 
+         RowBox[{"m", " ", "\[Mu]"}]}], ")"}], " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+      RowBox[{"m", " ", "\[Mu]", " ", "\[Gamma]", " ", "\[Lambda]", " ", 
+       RowBox[{"(", 
+        RowBox[{"a", "-", "1"}], ")"}]}]}], ">", "0"}]}]}]}],
+  CellChangeTimes->{{3.669040620313951*^9, 3.669040631271667*^9}, 
+    3.669042453463132*^9, 3.669042862417387*^9}],
+ "\nNotice that the first term will be positive so long as ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{
+     RowBox[{"a", " ", "\[Lambda]"}], "-", 
+     RowBox[{"m", " ", "\[Mu]"}]}], ">", "0"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", but that the second term will ",
+ StyleBox["always",
+  FontSlant->"Italic"],
+ " be negative (because ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"a", "<", "1"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ "; ",
+ StyleBox["a",
+  FontSlant->"Italic"],
+ " is the cost to shedding of generalism). So, if ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{
+     RowBox[{"a", " ", "\[Lambda]"}], "-", 
+     RowBox[{"m", " ", "\[Mu]"}]}], "<", "0"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", the generalist parasite can ",
+ StyleBox["never ",
+  FontSlant->"Italic"],
+ "invade. This means that the parasite must be able to persist on the second \
+host alone, if This first term stipulates that the shedding cost must either \
+be low, or the mortality rate of the alternative host must be low, in order \
+for the generalist to be able to invade. Interestingly, \n"
+}], "Text",
+ CellChangeTimes->{{3.669054876325335*^9, 3.669055095801422*^9}, {
+  3.669055309212352*^9, 3.6690554559637213`*^9}, {3.669055494767044*^9, 
+  3.6690556792302227`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Solve", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"-", 
+      FractionBox[
+       RowBox[{"a", " ", "\[Lambda]", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+           RowBox[{"(", 
+            RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+          RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+       RowBox[{"m", " ", "\[Mu]", " ", 
+        RowBox[{"(", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+          RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], 
+         ")"}]}]]}], "\[Equal]", "1"}], ",", " ", "a"}], "]"}], "//", 
+  "Simplify"}]], "Input",
+ CellChangeTimes->{{3.669054487250979*^9, 3.669054519201516*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{"a", "\[Rule]", 
+    FractionBox[
+     RowBox[{"m", " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"\[Gamma]", " ", "\[Lambda]"}], "+", 
+        RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+         RowBox[{"(", 
+          RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}]}], ")"}], " ", 
+      "\[Mu]"}], 
+     RowBox[{"\[Lambda]", " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+         RowBox[{"(", 
+          RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+        RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}]]}], "}"}], 
+  "}"}]], "Output",
+ CellChangeTimes->{{3.6690544947907743`*^9, 3.669054519459228*^9}}]
+}, Open  ]],
+
+Cell[TextData[{
+ "It is useful to explore how changing the parameters of the invasion fitness \
+affect the magnitude of the invasion fitness. For example, increasing the \
+mortality rate of the second host always decreases the invasion fitness \
+(because ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{
+    RowBox[{"\[Lambda]", "-", "\[Mu]"}], ">", "0"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ", which must be the first parasite to be able to persist in the system)."
+}], "Text",
+ CellChangeTimes->{
+  3.669040319050778*^9, {3.669042549523986*^9, 3.669042620469141*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"D", "[", 
+   RowBox[{
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+         RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+      RowBox[{"m", " ", "\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], ")"}]}]]}],
+     ",", "m"}], "]"}], "//", "Simplify"}]], "Input",
+ CellChangeTimes->{3.669042868260687*^9}],
+
+Cell[BoxData[
+ FractionBox[
+  RowBox[{"a", " ", "k", " ", "K", " ", "\[Beta]", " ", "\[Lambda]", " ", 
+   RowBox[{"(", 
+    RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], 
+  RowBox[{
+   SuperscriptBox["m", "2"], " ", "\[Mu]", " ", 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+     RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], 
+    ")"}]}]]], "Output",
+ CellChangeTimes->{3.669042622386985*^9, 3.669042869319879*^9}]
+}, Open  ]],
+
+Cell[TextData[{
+ "The effect of increasing the transmission rate \[Beta] depends on the sign \
+of ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"\[Lambda]", "-", 
+    RowBox[{"m", " ", "\[Mu]"}]}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ ". If the mortality rate of the second host is large enough, then increasing \
+the transmission rate will actually ",
+ StyleBox["hurt",
+  FontSlant->"Italic"],
+ " the generalist\[CloseCurlyQuote]s chances of invading the system."
+}], "Text",
+ CellChangeTimes->{{3.6690426371773367`*^9, 3.669042640190777*^9}, {
+  3.669042689692618*^9, 3.6690427726865053`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"D", "[", 
+   RowBox[{
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+         RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+      RowBox[{"m", " ", "\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], ")"}]}]]}],
+     ",", "\[Beta]"}], "]"}], "//", "Simplify"}]], "Input",
+ CellChangeTimes->{{3.669039400270011*^9, 3.669039455557724*^9}, {
+   3.6690418182691813`*^9, 3.669041829999874*^9}, {3.66904188530844*^9, 
+   3.669041902263441*^9}, 3.669042492047779*^9, {3.669042681919805*^9, 
+   3.6690426833587217`*^9}, 3.669042872333233*^9}],
+
+Cell[BoxData[
+ FractionBox[
+  RowBox[{"a", " ", "k", " ", "K", " ", "\[Gamma]", " ", "\[Lambda]", " ", 
+   RowBox[{"(", 
+    RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}], " ", 
+   RowBox[{"(", 
+    RowBox[{"\[Lambda]", "-", 
+     RowBox[{"m", " ", "\[Mu]"}]}], ")"}]}], 
+  RowBox[{"m", " ", 
+   SuperscriptBox[
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"\[Gamma]", " ", "\[Lambda]"}], "+", 
+      RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}]}], ")"}], "2"], " ", 
+   "\[Mu]"}]]], "Output",
+ CellChangeTimes->{3.669041938579392*^9, 3.6690424933764772`*^9, 
+  3.669042684117278*^9, 3.66904287283985*^9}]
+}, Open  ]],
+
+Cell["\<\
+A similar result holds for the effect of increasing the carrying capacity: if \
+the mortality rate of the host is high enough, then increasing the carrying \
+capacity will make it harder for the parasite to invade.  is seen of \
+increasing the carrying capacity of the second species is also always \
+conditional.\
+\>", "Text",
+ CellChangeTimes->{{3.6690419580976343`*^9, 3.669041971924347*^9}, {
+  3.669042788436936*^9, 3.669042850876424*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"D", "[", 
+   RowBox[{
+    RowBox[{"-", 
+     FractionBox[
+      RowBox[{"a", " ", "\[Lambda]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}], "+", 
+         RowBox[{"m", " ", "\[Gamma]", " ", "\[Mu]"}]}], ")"}]}], 
+      RowBox[{"m", " ", "\[Mu]", " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "\[Gamma]"}], " ", "\[Lambda]"}], "+", 
+         RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+          RowBox[{"(", 
+           RowBox[{
+            RowBox[{"-", "\[Lambda]"}], "+", "\[Mu]"}], ")"}]}]}], ")"}]}]]}],
+     ",", "k"}], "]"}], "//", "Simplify"}]], "Input",
+ CellChangeTimes->{{3.66904193218883*^9, 3.6690419325591993`*^9}, 
+   3.669042506256838*^9, {3.6690428757420797`*^9, 3.669042881770259*^9}}],
+
+Cell[BoxData[
+ FractionBox[
+  RowBox[{
+  "a", " ", "K", " ", "\[Beta]", " ", "\[Gamma]", " ", "\[Lambda]", " ", 
+   RowBox[{"(", 
+    RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}], " ", 
+   RowBox[{"(", 
+    RowBox[{"\[Lambda]", "-", 
+     RowBox[{"m", " ", "\[Mu]"}]}], ")"}]}], 
+  RowBox[{"m", " ", 
+   SuperscriptBox[
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"\[Gamma]", " ", "\[Lambda]"}], "+", 
+      RowBox[{"k", " ", "K", " ", "\[Beta]", " ", 
+       RowBox[{"(", 
+        RowBox[{"\[Lambda]", "-", "\[Mu]"}], ")"}]}]}], ")"}], "2"], " ", 
+   "\[Mu]"}]]], "Output",
+ CellChangeTimes->{{3.6690394390141907`*^9, 3.66903945582019*^9}, {
+   3.6690418255324306`*^9, 3.669041831052292*^9}, 3.669041891760791*^9, 
+   3.6690419329743423`*^9, 3.669042507606347*^9, {3.669042876246086*^9, 
+   3.669042882198649*^9}}]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.669042882175112*^9, 3.669042885201479*^9}}],
+
+Cell["Quasi-equilibrium abundance of parasites in the environment:", "Text",
+ CellChangeTimes->{{3.66904150141916*^9, 3.6690415111272287`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Solve", "[", 
+  RowBox[{
+   RowBox[{"dPmdt", "\[Equal]", "0"}], ",", "Pm"}], "]"}]], "Input",
+ CellChangeTimes->{{3.669041519352504*^9, 3.669041530152861*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"{", 
+   RowBox[{"Pm", "\[Rule]", 
+    FractionBox[
+     RowBox[{"a", " ", 
+      RowBox[{"(", 
+       RowBox[{"I1m", "+", "I2m"}], ")"}], " ", "\[Lambda]"}], 
+     RowBox[{
+      RowBox[{"S1", " ", "\[Beta]"}], "+", 
+      RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]]}], "}"}], 
+  "}"}]], "Output",
+ CellChangeTimes->{3.669041530504018*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dS1dt", "=", 
+   RowBox[{
+    RowBox[{"r1", " ", 
+     RowBox[{"(", 
+      RowBox[{"S1", "+", "I1m"}], ")"}], " ", 
+     RowBox[{"(", 
+      RowBox[{"1", "-", 
+       FractionBox[
+        RowBox[{"(", 
+         RowBox[{"S1", "+", "I1m"}], ")"}], "K1"]}], ")"}]}], "-", 
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pm"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dS2dt", "=", 
+   RowBox[{
+    RowBox[{"r2", " ", 
+     RowBox[{"(", 
+      RowBox[{"S2", "+", "I2m"}], ")"}], " ", 
+     RowBox[{"(", 
+      RowBox[{"1", "-", 
+       FractionBox[
+        RowBox[{"(", 
+         RowBox[{"S2", "+", "I2m"}], ")"}], "K2"]}], ")"}]}], "-", 
+    RowBox[{"\[Beta]", " ", "S2", " ", "Pm"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dI1mdt", "=", 
+   RowBox[{
+    RowBox[{"\[Beta]", " ", "S1", " ", "Pm"}], "-", 
+    RowBox[{"\[Mu]1", " ", "I1m"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"dI2mdt", "=", 
+    RowBox[{
+     RowBox[{"\[Beta]", " ", "S2", " ", "Pm"}], "-", 
+     RowBox[{"\[Mu]2", " ", "I2m"}]}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Eq", "=", 
+   RowBox[{"Solve", "[", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"dS1dt", "\[Equal]", "0"}], ",", 
+         RowBox[{"dS2dt", "\[Equal]", "0"}], ",", 
+         RowBox[{"dI1mdt", "\[Equal]", "0"}], ",", 
+         RowBox[{"dI2mdt", "\[Equal]", "0"}]}], "}"}], "/.", 
+       RowBox[{
+        RowBox[{"Solve", "[", 
+         RowBox[{
+          RowBox[{"dPmdt", "\[Equal]", "0"}], ",", "Pm"}], "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}], ")"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"S1", ",", "S2", ",", "I1m", ",", "I2m"}], "}"}]}], "]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.669041372691639*^9, 3.669041466992057*^9}, {
+  3.669041553082142*^9, 3.669041579980743*^9}}],
+
+Cell[BoxData["$Aborted"], "Output",
+ CellChangeTimes->{3.6690414983135157`*^9, 3.669041586487718*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"(", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"dS1dt", "\[Equal]", "0"}], ",", 
+     RowBox[{"dS2dt", "\[Equal]", "0"}], ",", 
+     RowBox[{"dI1mdt", "\[Equal]", "0"}], ",", 
+     RowBox[{"dI2mdt", "\[Equal]", "0"}]}], "}"}], "/.", 
+   RowBox[{
+    RowBox[{"Solve", "[", 
+     RowBox[{
+      RowBox[{"dPmdt", "\[Equal]", "0"}], ",", "Pm"}], "]"}], "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], ")"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"r1", " ", 
+      RowBox[{"(", 
+       RowBox[{"I1m", "+", "S1"}], ")"}], " ", 
+      RowBox[{"(", 
+       RowBox[{"1", "-", 
+        FractionBox[
+         RowBox[{"I1m", "+", "S1"}], "K1"]}], ")"}]}], "-", 
+     FractionBox[
+      RowBox[{"a", " ", 
+       RowBox[{"(", 
+        RowBox[{"I1m", "+", "I2m"}], ")"}], " ", "S1", " ", "\[Beta]", " ", 
+       "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]]}], "\[Equal]", 
+    "0"}], ",", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"r2", " ", 
+      RowBox[{"(", 
+       RowBox[{"I2m", "+", "S2"}], ")"}], " ", 
+      RowBox[{"(", 
+       RowBox[{"1", "-", 
+        FractionBox[
+         RowBox[{"I2m", "+", "S2"}], "K2"]}], ")"}]}], "-", 
+     FractionBox[
+      RowBox[{"a", " ", 
+       RowBox[{"(", 
+        RowBox[{"I1m", "+", "I2m"}], ")"}], " ", "S2", " ", "\[Beta]", " ", 
+       "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]]}], "\[Equal]", 
+    "0"}], ",", 
+   RowBox[{
+    RowBox[{
+     FractionBox[
+      RowBox[{"a", " ", 
+       RowBox[{"(", 
+        RowBox[{"I1m", "+", "I2m"}], ")"}], " ", "S1", " ", "\[Beta]", " ", 
+       "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]], "-", 
+     RowBox[{"I1m", " ", "\[Mu]1"}]}], "\[Equal]", "0"}], ",", 
+   RowBox[{
+    RowBox[{
+     FractionBox[
+      RowBox[{"a", " ", 
+       RowBox[{"(", 
+        RowBox[{"I1m", "+", "I2m"}], ")"}], " ", "S2", " ", "\[Beta]", " ", 
+       "\[Lambda]"}], 
+      RowBox[{
+       RowBox[{"S1", " ", "\[Beta]"}], "+", 
+       RowBox[{"S2", " ", "\[Beta]"}], "+", "\[Gamma]"}]], "-", 
+     RowBox[{"I2m", " ", "\[Mu]2"}]}], "\[Equal]", "0"}]}], "}"}]], "Output",
+ CellChangeTimes->{3.669041593327773*^9}]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1087, 1301},
+WindowMargins->{{406, Automatic}, {Automatic, 0}},
+FrontEndVersion->"10.3 for Mac OS X x86 (32-bit, 64-bit Kernel) (October 9, \
+2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 139, 1, 52, "Subsubsection"],
+Cell[722, 25, 1855, 39, 316, "Text"],
+Cell[2580, 66, 2657, 69, 253, "Input"],
+Cell[CellGroupData[{
+Cell[5262, 139, 6060, 160, 569, "Input"],
+Cell[11325, 301, 4014, 119, 230, "Output"],
+Cell[15342, 422, 2634, 76, 156, "Output"],
+Cell[17979, 500, 1453, 37, 108, "Output"]
+}, Open  ]],
+Cell[19447, 540, 98, 1, 46, "Text"],
+Cell[CellGroupData[{
+Cell[19570, 545, 1552, 43, 94, "Input"],
+Cell[21125, 590, 242, 3, 43, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[21404, 598, 423, 10, 69, "Input"],
+Cell[21830, 610, 951, 26, 69, "Output"],
+Cell[22784, 638, 1103, 36, 79, "Output"]
+}, Open  ]],
+Cell[23902, 677, 2314, 67, 227, "Text"],
+Cell[CellGroupData[{
+Cell[26241, 748, 1439, 43, 172, "Input"],
+Cell[27683, 793, 729, 23, 65, "Output"]
+}, Open  ]],
+Cell[28427, 819, 198, 5, 46, "Text"],
+Cell[CellGroupData[{
+Cell[28650, 828, 1249, 37, 72, "Input"],
+Cell[29902, 867, 750, 21, 69, "Output"]
+}, Open  ]],
+Cell[30667, 891, 4207, 113, 465, "Text"],
+Cell[CellGroupData[{
+Cell[34899, 1008, 903, 25, 72, "Input"],
+Cell[35805, 1035, 738, 21, 69, "Output"]
+}, Open  ]],
+Cell[36558, 1059, 580, 13, 137, "Text"],
+Cell[CellGroupData[{
+Cell[37163, 1076, 812, 23, 72, "Input"],
+Cell[37978, 1101, 572, 16, 70, "Output"]
+}, Open  ]],
+Cell[38565, 1120, 606, 15, 107, "Text"],
+Cell[CellGroupData[{
+Cell[39196, 1139, 1039, 26, 72, "Input"],
+Cell[40238, 1167, 677, 18, 70, "Output"]
+}, Open  ]],
+Cell[40930, 1188, 454, 8, 105, "Text"],
+Cell[CellGroupData[{
+Cell[41409, 1200, 911, 24, 72, "Input"],
+Cell[42323, 1226, 815, 21, 70, "Output"]
+}, Open  ]],
+Cell[43153, 1250, 92, 1, 43, "Input"],
+Cell[43248, 1253, 143, 1, 46, "Text"],
+Cell[CellGroupData[{
+Cell[43416, 1258, 183, 4, 43, "Input"],
+Cell[43602, 1264, 386, 12, 68, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[44025, 1281, 1934, 60, 278, "Input"],
+Cell[45962, 1343, 101, 1, 43, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[46100, 1349, 445, 13, 43, "Input"],
+Cell[46548, 1364, 1973, 61, 174, "Output"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
