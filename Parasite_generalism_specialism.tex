@@ -1,4 +1,53 @@
-\documentclass[11pt,reqno,final,pdftex]{amsart}
+\documentclass[11pt,reqno,final,pdftex]{amsart}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
 %% DO NOT DELETE OR CHANGE THE FOLLOWING TWO LINES!
 %% $Revision$
 %% $Date$
@@ -66,54 +115,10 @@
 \newcommand{\Var}[1]{\mathrm{Var}\left[#1\right]}
 \newcommand{\dd}[1]{\mathrm{d}{#1}}
 \newcommand{\citetpos}[1]{\citeauthor{#1}'s \citeyearpar{#1}}
-
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-<<setup,include=FALSE,cache=F>>=
-require(knitr)
-opts_chunk$set(
-               progress=T,prompt=F,tidy=F,highlight=T,
-               warning=F,message=F,error=F,
-               results='hide',echo=F,cache=T,
-               size='scriptsize',
-               fig.path='figure/',fig.lp="fig:",
-               fig.align='left',
-               fig.show='asis',
-               fig.height=4,fig.width=6.83,
-               out.width="\\linewidth",
-               dpi=150,
-               dev=c('png','tiff'),
-               dev.args=list(
-                 png=list(bg='transparent'),
-                 tiff=list(compression='lzw')
-                 )
-               )
 
-scinot <- function (x, digits = 2, type = c("expression","latex")) {
-  type <- match.arg(type)
-  x <- signif(x,digits=digits)
-  ch <- floor(log10(abs(x)))
-  mn <- x/10^ch
-  switch(type,
-         expression={
-           bquote(.(mn)%*%10^.(ch))
-         },
-         latex={
-           paste0("\\scinot{",mn,"}{",ch,"}")
-         }
-         )
-}
-
-require(xtable)
-
-options(scipen=-1)
-
-options(
-        xtable.caption.placement="top",
-        xtable.include.rownames=FALSE
-        )
-
-@
 
 The purpose of this document is to outline some models that could potentially be used to study the factors that push parasites towards generalism or specialism.
 I will propose two approaches to this problem, an evolutionary approach based on game theory and an ecological approach based on optimal foraging theory.
