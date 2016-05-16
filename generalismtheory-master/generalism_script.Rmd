@@ -1,0 +1,372 @@
+---
+title: "Is generalism of fish macroparasites associated with parasite and/or host traits?"
+author: "Josephine Walker"
+date: "8 April 2016"
+output: pdf_document
+---
+THIS DOCUMENT IS NOW ONLY DATA CLEANING AND PRELIMINARY ANALYSIS
+
+The aim of this document is to calculate measures of generalism from the fish database (and assess the distribution of generalism scores by parasite and host characteristics).
+
+The data are from the Fish Parasite Ecology Database (http://www.esapubs.org/archive/ecol/E094/045/metadata.php) with crustacean parasites and parasite traits for all species added by Amy Ellison, Jo Cable and team
+
+```{r,eval=FALSE}
+# read in data & remove duplicates
+
+library(dplyr,suppressPackageStartupMessages())
+library(tidyr,suppressPackageStartupMessages())
+
+# set working directory to data location
+setwd("~/dat/generalismtheory")
+
+dat <- read.csv("fishparas.csv",header=T)
+
+
+# update levels for consistency
+levels(dat$Host_stage) <- c("Both","Both","Definitive","Definitive","Intermediate","nd")
+levels(dat$GEO) <- c(NA,"AFR","ANT","AUS","IND",NA,NA,"NEA","NEO","PAL",NA,NA)
+# correct a few species names - haven't checked all only newly added ones
+dat$H_species[dat$H_species=="insignisC"] <- "insignis"
+dat$H_species[dat$H_species=="Coeruleus"] <- "coeruleus"
+dat$H_species[dat$H_species=="crocodiluscrocodilus"] <- "crocodilus"
+dat$H_species[dat$H_species=="carangis"] <- "carangus"
+
+dat$pname <- paste(dat$P_Genus,dat$P_species,sep="_")
+dat$hname <- paste(dat$hgenus,dat$H_species,sep="_")
+dat$hp <- paste(dat$hname,dat$pname,sep="+")
+
+dat <- dat[-which(dat$hname=="Colossoma_macroponum"),]
+
+# extract list of host-parasite associations & traits
+# association traits: Host_stage, GEO
+pairs <- dat %>% select(hname,pname) %>% distinct()
+
+# clean Host_stage
+pairs.t1 <- dat %>% select(hp,hname,pname,Host_stage) %>% distinct()
+pairs.dup <- pairs.t1[duplicated(pairs.t1[,1:2]) | duplicated(pairs.t1[,1:2], fromLast=TRUE),] %>% arrange(hname,pname) # all doubles 
+
+cleanHS <- function(d) {
+  if(any(d$Host_stage=="nd")) {
+    new <- as.character(d$Host_stage[d$Host_stage!="nd"])
+    return(new)
+  }
+  if(any(d$Host_stage=="Both")) {return("Both")}
+  if(any(d$Host_stage=="Intermediate") & any(d$Host_stage=="Definitive")) {return("Both")}
+}
+
+pairs.new <- pairs.dup %>% group_by(hname,pname) %>% do(newHS=cleanHS(.))
+pairs.new$newHS <- as.character(pairs.new$newHS)
+# put back together
+pairs.t2 <- left_join(pairs.t1,pairs.new,by=c("hname","pname"))
+pairs.t2$Host_stage[!is.na(pairs.t2$newHS)] <- pairs.t2$newHS[!is.na(pairs.t2$newHS)]
+pairs.t <- distinct(pairs.t2)
+pairs.t$newHS <- NULL
+
+# come back to GEO
+pairs.g1 <- dat %>% select(hp,hname,pname,GEO) %>% distinct()
+pairs.g1$val <- 1
+pairs.g2 <- spread(pairs.g1,key=GEO,value=val,fill=0)
+pairs.traits <- inner_join(pairs.t,pairs.g2,by=c("hp","hname","pname"))
+
+save(pairs.traits,file="pairs.traits.RData")
+
+############
+
+# extract list of parasite traits
+levels(dat$Endoparasite) <- c("Both","Ecto","Endo","Endo",NA)
+levels(dat$Gender) <- c("Dioecious","Hermaphrodite","Hermaphrodite",NA)
+levels(dat$Complex) <- c(NA,NA,"No","Yes","Yes_No")
+levels(dat$Sexual) <- c(NA,"Both",NA,"Sexual","Sexual","Sexual")
+levels(dat$Reproduction)[1:2] <- c(NA,NA)
+levels(dat$Host_no)[c(1,8)] <- c(NA,NA)
+levels(dat$Environment_LHS)[1:2] <- c(NA,NA)
+levels(dat$Env_mode) <- c(NA,"napp",NA,"Water","Water")
+levels(dat$Motile_LHS) <- c(NA,NA,"No","Yes","Yes")
+levels(dat$Vector) <- c(NA,NA,"No","No","Yes")
+levels(dat$Trophic) <- c(NA,NA,NA,NA,"No","Yes")
+levels(dat$Horizontal) <- c(NA,"Yes",NA,"Yes")
+levels(dat$P_Taxon) <- c("A","A","C","C","CR","M","M","N","N","T","T")
+
+para <- dat %>% select(pname,P_Taxon,Endoparasite,Gender,Complex,Sexual,Reproduction,Host_no,Environment_LHS,Env_mode,Motile_LHS,Vector,Trophic,Horizontal) %>% distinct() # distinct rows of parasite traits
+para.dup <- para[duplicated(para$pname) | duplicated(para$pname,fromLast = TRUE),] %>% arrange(pname) # find duplicated parasites
+write.csv(para.dup,file="para.dup.out.csv")
+
+
+# merge back with new row as whole row replacing that parasite name
+para.dup.in <- read.csv("para.dup.in.csv",stringsAsFactors = FALSE)
+
+para.t <- anti_join(para,para.dup,by="pname")
+para.traits <- rbind(para.t,para.dup.in) %>% arrange(pname)
+
+save(para.traits,file="para.traits.RData")
+
+############
+# host traits
+host <- dat %>% select(hname,MaxL,K,Y,Ym,T,F,B,M,AOO,LAT,LON) %>% distinct() %>% arrange(hname)
+host.dup <- host[duplicated(host$hname) | duplicated(host$hname,fromLast = TRUE),] # not all doubles
+host2 <- anti_join(host,host.dup,by="hname")
+
+# a number of duplicates are the same row filling in
+dub <- host.dup[c(2,42),-1]
+host.dup2 <- anti_join(host.dup,dub,by=c("MaxL", "K", "Y", "Ym", "T", "F", "B", "M", "AOO", "LAT", "LON")) %>% arrange(hname)
+
+host3 <- rbind(host2,host.dup2)
+
+host.dup3 <- host.dup2[duplicated(host.dup2$hname) | duplicated(host.dup2$hname,fromLast = TRUE),]
+write.csv(host.dup3,file="host.dup.out.csv",row.names = FALSE)
+
+host.dup.in <- read.csv("host.dup.in.csv",stringsAsFactors = FALSE)
+host.t <- anti_join(host3,host.dup3,by="hname")
+host.traits <- rbind(host.t,host.dup.in) %>% arrange(hname)
+anyDuplicated(host.traits$hname)
+
+save(host.traits,file="host.traits.RData")
+
+#############
+# host taxa - old list with class added plus new ones not on that list
+# old class list
+host.taxa1 <- read.csv("new_hostlist_wclass.csv",stringsAsFactors = FALSE)
+#anyDuplicated(host.taxa$H_bin)
+host.taxa2 <- host.taxa1 %>% select(-H_O.1,-uid)
+host.taxa2$H_O[which(host.taxa2$H_O=="Tetradontiformes")] <- "Tetraodontiformes"
+host.taxa2$H_F <- toupper(host.taxa2$H_F)
+host.taxa2$H_O <- toupper(host.taxa2$H_O)
+host.taxa3 <- distinct(host.taxa2)
+
+# which hosts do we not have data on?
+taxa <- dat %>% select(hname,H_O,H_F,hgenus,H_species) %>% distinct(hname) %>% arrange(hname)
+taxa2 <- anti_join(taxa,host.taxa3,by=c("hname"="H_bin")) %>% arrange(hname)
+#anyDuplicated(taxa2$hname)
+
+write.csv(taxa2,file="newhostnames.csv")
+new <- read.csv("newhostnames-class.csv") 
+newtaxa <- new %>% select(-uid)
+names(newtaxa) <- c("H_bin","H_O","H_F","H_Genus","H_species","H_class")
+newtaxa$H_Phylum <- "Chordata"
+
+# look at which ones from the old list aren't in new dat - mostly have capital & space issues that must have been corrected already
+taxarev <- anti_join(host.taxa3,taxa,by=c("H_bin"="hname")) %>% arrange(H_bin) 
+
+# exclude taxa which aren't in new dat
+taxa3 <- anti_join(host.taxa3,taxarev,by=("H_bin"))
+
+# group old and new
+alltaxa <- bind_rows(newtaxa,taxa3)
+names(alltaxa)[1] <- "hname"
+
+taxa.dup <- alltaxa[duplicated(alltaxa$hname) | duplicated(alltaxa$hname,fromLast = TRUE),] %>% arrange(hname)
+taxa.notdup <- anti_join(alltaxa,taxa.dup,by="hname")
+
+# write csv
+write.csv(taxa.dup,file="taxa.dup.out.csv")
+
+taxa.dup.in <- read.csv("taxa.dup.in.csv")
+
+# merge new and old host names
+host.taxa <- bind_rows(taxa.notdup,taxa.dup.in) %>% arrange(hname)
+host.taxa$H_F <- toupper(host.taxa$H_F)
+host.taxa$H_O <- toupper(host.taxa$H_O)
+
+# correct spelling errors
+host.taxa$H_O[which(host.taxa$H_O == "TETRADONTIFORMES")] <- "TETRAODONTIFORMES"
+host.taxa$H_F[which(host.taxa$H_F == "TETRADONTIDAE")] <- "TETRAODONTIDAE"
+host.taxa$H_F[which(host.taxa$H_F == "CENTROLOPPHIDAE")] <- "CENTROLOPHIDAE"
+host.taxa$H_F[which(host.taxa$H_F == "CLUPIDAE")] <- "CLUPEIDAE"
+host.taxa$H_F[which(host.taxa$H_F == "OSTEOGOGLOSSIDAE")] <- "OSTEOGLOSSIDAE"
+host.taxa$H_O[which(host.taxa$H_F == "SALMINUS")] <- "CHARACIFORMES"
+host.taxa$H_F[which(host.taxa$H_F == "SALMINUS")] <- "BRYCONIDAE"
+# just remove this one, and from host.traits & pairs above
+host.taxa <- host.taxa[-which(host.taxa$hname=="Colossoma_macroponum"),] 
+
+save(host.taxa,file="host.taxa.RData")
+
+```
+
+Generalism of the parasites can be calculated in a variety of ways, and may take into account relative prevalence, abundance and/or relatedness between host species [Poulin & Mouillot 2003, 2005]. Other indices account for connectedness within a host-parasite network and may account for prevalence or abundance [Dormann].  
+
+In this data set, we don't have information on number of parasites per host or on prevalence or study effort, only reported associations between hosts and parasites. As a result we calculate:
+
+* **Degree**: the number of host species a parasite is associated with
+* **$S_{TD}$**: the average taxonomic distinctness of all host species used by a parasite species [Poulin & Mouillot 2003]: $$S_{TD}=2[s(s-1)]^{-1}\sum \sum_{i<j} \omega_{ij}$$
+
+    $S_{TD}$ can only be calculated for parasites infecting more than one host species, those infecting one species are assigned a value of 1. In addition $VarS_{TD}$ can only be calculated for hosts infecting more than 2 host species:
+$$VarS_{TD}=[s(s-1)]^{-1}\sum \sum_{i\neq j}\left (\omega_{ij}-S_{TD}  \right )^2$$
+    But this is the same as: $$VarS_{TD}=2[s(s-1)]^{-1}\sum \sum_{i< j}\left (\omega_{ij}-S_{TD}  \right )^2$$
+
+* Another method could use host phylogenetic distance (eg from time tree of life) instead of categorized phylogenies
+    + Do we have data for all species? No - come back to this if we do. Divergence time data are only available for about a quarter of the host species in the fish database. 
+
+```{r,cache=TRUE,eval=FALSE}
+library(ape,suppressPackageStartupMessages())
+
+tree <- read.tree("C:/Users/Josephine/Google Drive/Thesis/Chapter 3 (Community Ecology)/ch3 stuff/TimetreeOfLife2015.nwk")
+
+H_bin <- paste(dat.u$H_Genus,dat.u$H_species,sep="_") %>% unique()
+
+pruned.tree<-drop.tip(tree, setdiff(tree$tip.label, H_bin))
+
+# calculate path distance between each species (this should be time since last common ancestor*2)
+pathlength <- cophenetic.phylo(pruned.tree)
+
+paste("number of host species in database:",length(H_bin),sep=" ")
+paste("number of nodes in pruned tree:", length(pruned.tree$tip.label),sep=" ")
+
+
+```
+
+
+Calculate S_TD using taxonomic distance from data
+
+```{r,eval=FALSE}
+load("~/dat/generalismtheory/pairs.traits.RData")
+load("~/dat/generalismtheory/host.taxa.RData")
+
+# calculate S_TD from separate data frames
+
+# # http://stackoverflow.com/questions/17171148/non-redundant-version-of-expand-grid
+expand.grid.unique <- function(x, y, include.equals=FALSE)
+{
+    x <- unique(x)
+
+    y <- unique(y)
+
+    g <- function(i)
+    {
+        z <- setdiff(y, x[seq_len(i-include.equals)])
+
+        if(length(z)) cbind(x[i], z, deparse.level=0)
+    }
+
+    do.call(rbind, lapply(seq_along(x), g))
+}
+
+# write function to calculate S_TD
+# only congeneric hosts will have value 1, so call one species only value 0?
+
+get.S_TD <- function(dat) {
+  S_TD <- 0
+  VarS_TD <- NA
+  
+  if(nrow(dat) > 1) {
+    temp <- data.frame(expand.grid.unique(dat$hname,dat$hname))
+    temp$genus <- 0
+    temp$family <- 0
+    temp$order <- 0
+    temp$class <- 0
+    temp$phylum <- 0
+    
+    for (i in 1:nrow(temp)) {
+      temp2 <- rbind(dat[dat$hname == temp$X1[i],],dat[dat$hname == temp$X2[i],])
+      temp$genus[i] <- as.numeric(identical(temp2$H_Genus[1],temp2$H_Genus[2]))
+      temp$family[i] <- as.numeric(identical(temp2$H_F[1],temp2$H_F[2]))
+      temp$order[i] <- as.numeric(identical(temp2$H_O[1],temp2$H_O[2]))
+      temp$class[i] <- as.numeric(identical(temp2$H_class[1],temp2$H_class[2]))
+      temp$phylum[i] <- as.numeric(identical(temp2$H_Phylum[1],temp2$H_Phylum[2]))
+    }
+
+    temp$omega <- with(temp, 6 - genus - family - order - class - phylum)
+
+    S_TD <- 2*(sum(temp$omega))/(nrow(dat)*(nrow(dat)-1))
+    temp$Var <- (temp$omega - S_TD)^2 
+    #print(temp)
+    VarS_TD <- 2*(sum(temp$Var))/(nrow(dat)*(nrow(dat)-1))
+  }
+  return(data.frame(S_TD=S_TD,VarS_TD=VarS_TD,degree=nrow(dat)))
+  #return(paste(S_TD,VarS_TD,sep="@"))
+}
+
+pairswithtaxa <- pairs.traits %>% select(hname,pname) %>% left_join(host.taxa,by=("hname"))
+# test <- pairswithtaxa[which(pairswithtaxa$pname=="Acanthocephaloides_distinctus"),]
+# get.S_TD(test)
+
+index <- pairswithtaxa %>% group_by(pname) %>% do(get.S_TD(.)) %>% ungroup()
+save(index,file="index.RData")
+load("para.traits.RData") 
+
+````
+
+The triangular scatter of the index matches what was observed in Poulin & Mouillot 2003.
+
+```{r,cache=TRUE,eval=FALSE}
+load("index.RData")
+plot(x=index$degree,y=index$S_TD)
+plot(x=log10(index$degree),y=index$S_TD)
+
+#boxplots by parasite characteristic
+#this is old fulldat <- full_join(para.traits,index,by=c("P_bin","degree"))
+# dim correct
+
+boxplot(fulldat$S_TD ~ fulldat$Gender)
+boxplot(fulldat$S_TD ~ fulldat$Host_stage)
+boxplot(fulldat$S_TD ~ fulldat$Endoparasite)
+boxplot(fulldat$S_TD ~ fulldat$Complex)
+boxplot(fulldat$S_TD ~ fulldat$Sexual)
+boxplot(fulldat$S_TD ~ fulldat$Reproduction)
+boxplot(fulldat$S_TD ~ fulldat$Host_no)
+boxplot(fulldat$S_TD ~ fulldat$Environment_LHS)
+boxplot(fulldat$S_TD ~ fulldat$Env_mode)
+boxplot(fulldat$S_TD ~ fulldat$Motile_LHS)
+boxplot(fulldat$S_TD ~ fulldat$Vector)
+boxplot(fulldat$S_TD ~ fulldat$Trophic)
+boxplot(fulldat$S_TD ~ fulldat$Horizontal)
+boxplot(fulldat$S_TD ~ fulldat$P_Taxon)
+
+
+```
+
+Does degree vary by taxonomic group or other parasite characteristics?
+
+```{r,cache=TRUE,eval=FALSE}
+boxplot(log(degree$degree) ~ degree$Gender)
+boxplot(log(degree$degree) ~ degree$Host_stage)
+boxplot(log(degree$degree) ~ degree$Endoparasite)
+boxplot(log(degree$degree) ~ degree$Complex)
+boxplot(log(degree$degree) ~ degree$Sexual)
+boxplot(log(degree$degree) ~ degree$Reproduction)
+boxplot(log(degree$degree) ~ degree$Host_no)
+boxplot(log(degree$degree) ~ degree$Environment_LHS)
+boxplot(log(degree$degree) ~ degree$Env_mode)
+boxplot(log(degree$degree) ~ degree$Motile_LHS)
+boxplot(log(degree$degree) ~ degree$Vector)
+boxplot(log(degree$degree) ~ degree$Trophic)
+boxplot(log(degree$degree) ~ degree$Horizontal)
+boxplot(log(degree$degree) ~ degree$P_Taxon)
+```
+
+Calculate indices based on network:
+
+```{r,eval=FALSE}
+load("~/dat/generalismtheory/host.taxa.RData")
+load("~/dat/generalismtheory/host.traits.RData")
+load("~/dat/generalismtheory/index.RData")
+load("~/dat/generalismtheory/pairs.traits.RData")
+load("~/dat/generalismtheory/para.traits.RData")
+
+
+library(bipartite)
+pairsweb <- frame2webs(pairs.traits,varnames=c("hname","pname","Host_stage"))
+
+bipindex <- specieslevel(pairsweb$Intermediate,level="lower",index="betweenness") # only took 1 minute
+bipindex$hname <- row.names(bipindex)
+bipindex$network <- "Intermediate"
+bipindexDef <- specieslevel(pairsweb$Definitive,level="lower",index="betweenness") # takes long...
+bipindexDef$hname <- row.names(bipindexDef)
+bipindexDef$network <- "Definitive"
+
+bipindices <- bind_rows(bipindex,bipindexDef)
+host.ind <- full_join(host.traits,bipindices,by="hname")
+save(host.ind,file="~/git/generalismtheory/host.ind.RData")
+
+para.ind <- full_join(para.traits,index,by="pname")
+save(para.ind,file="~/git/generalismtheory/para.ind.RData")
+
+```
+
+Need to save final data with indices included! Merge the data back together to use in calc and anaysis script.
+
+```{r}
+
+
+
+```
+
