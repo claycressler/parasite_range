@@ -42,49 +42,20 @@ levels(dat.ph.drop$GEO) <- c(NA,"AFR","ANT","AUS","IND",NA,NA,"NEA","NEO","PAL",
 ## For example, there are 405 rows that are *exact* duplicates of other rows
 duplicated(dat.ph.drop[,-1]) %>% sum
 
-## We can do this two ways: one preserves only the unique host-parasite pairs. If a pair is found in multiple geographic regions, we don't care - throw all of that information away. the following command removes 4733 rows from the dataset
-dat.ph.drop[!duplicated(dat.ph.drop[,c("new_pname","new_hname")]),] -> new.dat
-
-## How many unique intermediate and definitive hosts do the trophically transmitted parasites have?
-merge(
-    subset(new.dat, Trophic=="Yes" & Host_stage=="Definitive") %>%
-        ddply(., .(new_pname), summarise, nDef=length(unique(new_hname))),
-    subset(new.dat, Trophic=="Yes" & Host_stage=="Intermediate") %>%
-        ddply(., .(new_pname), summarise, nInt=length(unique(new_hname))),
-    by="new_pname",
-    all=TRUE) -> hostCounts
-hostCounts$nInt[is.na(hostCounts$nInt)] <- 0
-hostCounts$nDef[is.na(hostCounts$nDef)] <- 0
-hostCounts <- mutate(hostCounts, nHosts=nInt+nDef)
-
-## host many parasites have no intermediate hosts recorded in the dataset?
-sum(hostCounts$nInt==0)
-## how many parasites have not definitive hosts recorded in the dataset?
-sum(hostCounts$nDef==0)
-
-## For parasites with more than one definitive and intermediate host, plot the relationship between these numbers
-with(subset(hostCounts, nInt > 0 & nDef > 0), plot(nInt, nDef, xlab='No. of intermediate hosts', ylab='No. of definitive hosts'))
-subset(hostCounts, nInt > 0 & nDef > 0 & nHosts < 5)
-
-## of parasites with intermediate but not definitive hosts, what fraction  have different numbers of intermediate hosts?
-sum(subset(hostCounts, nInt > 0 & nDef==0)$nInt<20)/nrow(subset(hostCounts, nInt > 0 & nDef==0))
-sum(subset(hostCounts, nInt > 0 & nDef==0)$nInt<10)/nrow(subset(hostCounts, nInt > 0 & nDef==0))
-sum(subset(hostCounts, nInt > 0 & nDef==0)$nInt<5)/nrow(subset(hostCounts, nInt > 0 & nDef==0))
-sum(subset(hostCounts, nInt > 0 & nDef==0)$nInt==1)/nrow(subset(hostCounts, nInt > 0 & nDef==0))
-
-## of parasites with definitive but not intermediate hosts, what fraction  have different numbers of definitive hosts?
-sum(subset(hostCounts, nDef > 0 & nInt==0)$nDef<20)/nrow(subset(hostCounts, nDef > 0 & nInt==0))
-sum(subset(hostCounts, nDef > 0 & nInt==0)$nDef<10)/nrow(subset(hostCounts, nDef > 0 & nInt==0))
-sum(subset(hostCounts, nDef > 0 & nInt==0)$nDef<5)/nrow(subset(hostCounts, nDef > 0 & nInt==0))
-sum(subset(hostCounts, nDef > 0 & nInt==0)$nDef==1)/nrow(subset(hostCounts, nDef > 0 & nInt==0))
-
-## Anisakis simplex has 222 intermediate hosts - who are they?
-subset(dat.ph.drop, new_pname=="Anisakis simplex")$MaxL
 
 ## What if I break the analyses down by geographic region?
 ## note that there are thousands of rows where LAT and LON are recorded, but GEO is not.
 
-dat.ph.drop[!duplicated(dat.ph.drop[,c("new_pname","new_hname","LAT","LON")]),] -> new.dat
+## first look for host-parasite pairs with the same geographic region
+
+
+
+## this drops 1077 rows where the GEO variable is identical to other rows with the same host-parasite pair, or where the biogeographic region is NA
+
+
+
+dat.ph.drop[-union(which(duplicated(dat.ph.drop[,c("new_pname","new_hname","GEO")])),
+                   which(is.na(dat.ph.drop[duplicated(dat.ph.drop[,c("new_pname","new_hname")]),'GEO']))),] -> new.dat
 
 merge(
     subset(new.dat, Trophic=="Yes" & Host_stage=="Definitive") %>%
