@@ -6,7 +6,6 @@
 library(dplyr)
 library(tidyr)
 
-setwd("~/dat/generalismtheory")
 dat <- read.csv("fishparas.csv",header=T)
 
 # update parasite names
