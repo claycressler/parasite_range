@@ -1,0 +1,828 @@
+---
+title: "Predictability of helminth parasite host range using information on geography, host traits and parasite community structure"
+author: ""
+output:
+  pdf_document: default
+  html_document:
+    fig_height: 6
+    fig_width: 6
+    highlight: tango
+    theme: journal
+
+---
+
+
+The following code was used to create predictive boosted regression models of parasite species distributions among hosts. See original citation for details of the analysis:
+
+> Dallas, T, AW Park, JM Drake. 2016. Predictability of helminth parasite host range using information on geography, host traits and parasite community structure. _Parasitology_ doi:10.1017/S0031182016001608
+
+
+
+The data provided are from FishPest (Strona and Lafferty 2012) and FishBase (Froese and Pauly 2000).
+
+> Froese, R. and D. Pauly, Editors. 2000. FishBase 2000: concepts, design and data sources. ICLARM, Los Baños, Laguna, Philippines. 344 p.
+
+> Strona, G and KD Lafferty. "FishPEST: an innovative software suite for fish parasitologists." Trends in parasitology 28.4 (2012): 123.
+
+
+### Load required packages
+
+```{r echo=FALSE, message=FALSE, comment=FALSE}
+library(gbm);
+library(ROCR);
+library(randomForest);
+library(vegan);
+library(plyr);
+library(dplyr)
+```
+
+
+
+### Load data from FishPest
+
+```{r}
+fishData <- read.csv('fishPest.csv', stringsAsFactors = FALSE)
+```
+
+
+```{r eval=F, echo=TRUE}
+#remove first 3 variables relating to parasite taxonomy
+pest <- fishData[,-c(1:3)]
+pest[which(pest=='na', arr.ind=TRUE)] <- NA
+pest[, 7:ncol(pest)] <- apply(pest[,7:ncol(pest)], 2,  as.numeric)
+#find parasites sampled 15 or more times
+parasites <- names(which(table(pest$P_SP) > 10))
+```
+
+
+
+## Calculate host taxonomic eigenvectors
+
+```{r eval=F, echo=T}
+
+fishData$H_G <- sapply(as.character(fishData$H_SP), function(x){unlist(strsplit(x, ' '))[1]})
+
+uniqueFishData <- unique(fishData[,c('H_C','H_O','H_F','H_G')])
+
+hostTaxDist <- taxa2dist(uniqueFishData, varstep=TRUE)
+hostTaxDist <- as.data.frame(as.matrix(hostTaxDist))
+avgTaxDist <- rowMeans(hostTaxDist)
+
+hostEig <- ape::pcoa(hostTaxDist)
+
+uniqueFishData$pc1 <- hostEig$vectors[,1]
+uniqueFishData$pc2 <- hostEig$vectors[,2]
+uniqueFishData$pc3 <- hostEig$vectors[,3]
+uniqueFishData$pc4 <- hostEig$vectors[,4]
+uniqueFishData$pc5 <- hostEig$vectors[,5]
+```
+
+
+```{r eval=FALSE, echo=FALSE}
+write.csv(uniqueFishData, file='uniqueFishData.csv', row.names=FALSE)
+```
+
+
+#### Training models on host trait data
+
+```{r, eval=FALSE, echo=T, message=FALSE}
+# storage for model outputs
+ baseline.auc <- aso.auc <-  brt.perfAUC <- brt.perfAUC.geog <- brt.perfAUC.trait <- brt.perfAUC.parcom <- brt.perfAUC.hostTax <-vector()
+
+ brtModel <- brt.best.iter <- brt.preds <- brt.perf <- list()
+ brtModel.geog <- brt.best.iter.geog <- brt.preds.geog <- brt.perf.geog <- list()
+ brtModel.trait <- brt.best.iter.trait <- brt.preds.trait <- brt.perf.trait <- list()
+ brtModel.parcom <- brt.best.iter.parcom <- brt.preds.parcom <- brt.perf.parcom <- list()
+ brtModel.hostTax <- brt.best.iter.hostTax <- brt.preds.hostTax <- brt.perf.hostTax <- list()
+
+# form the data into an interaction matrix,
+# and determine parasite species richness
+ intMat <- table(pest$H_SP, pest$P_SP)
+ psr <- rowSums(intMat)
+
+ hostData <- unique(pest[,c(2:ncol(pest))])
+ hostData2 <- hostData[-which(is.na(hostData$GEO)), ]
+#encode biogeographic region as dummy variable
+ hostData2$AFR <- as.numeric(hostData2$GEO == 'AFR')
+ hostData2$PAL <- as.numeric(hostData2$GEO == 'PAL')
+ hostData2$ANT <- as.numeric(hostData2$GEO == 'ANT')
+ hostData2$NEO <- as.numeric(hostData2$GEO == 'NEO')
+ hostData2$AUS <- as.numeric(hostData2$GEO == 'AUS')
+ hostData2$IND <- as.numeric(hostData2$GEO == 'IND')
+ hostData2$NEA <- as.numeric(hostData2$GEO == 'NEA')
+#remove GEO from hostData2
+ hostData2$GEO <- NULL
+ hostData2$H_G <- sapply(as.character(hostData2$H_SP), function(x){unlist(strsplit(x, ' '))[1]})
+ hostData2 <- full_join(hostData2, uniqueFishData, by = c('H_C','H_O','H_F','H_G'))
+ hostData2$H_G <- NULL
+ hostData2$H_C <- NULL
+ hostData2$H_O <- NULL
+ hostData2$H_F <- NULL
+
+#condense hostData2 down to 1 unique entry per host species
+ hosts <- unique(hostData2$H_SP)
+ hostData3 <-hostData2[1,]
+ colnames(hostData3) <- colnames(hostData2)
+
+ for(g in 1:length(hosts)){
+   temp <- hostData2[which(hostData2[,'H_SP'] == hosts[g]),]
+   if(nrow(temp) == 1){
+     hostData3 <- bind_rows(hostData3, temp)
+   }else{
+     temp2 <- temp[1,]
+     temp2[13:19] <- colSums(temp[,13:19])
+     hostData3 <- bind_rows(hostData3, temp2)
+   }
+   print(g)
+ }
+
+
+# tiny tweaks to data format
+ hostData4 <- as.data.frame(hostData3[-1,])
+ hostData4$F <- NULL;
+ hostData4$B <- NULL;
+ hostData4$M <- NULL;
+ hostData4$H_SP <- unique(hostData2$H_SP)
+```
+
+
+
+
+```{r}
+#' This function calculates variable importance as I define it in the supplement.
+#'
+#'
+#' @param gbmModel: a trained model object from `gbm`
+#' @param newdata: a set of data with identical column structure to the training data set used in `gbmModel`
+#' @param prezTE: presence values for the test data set (used to assess model accuracy)
+#' @param AUC: overall model AUC, used to standardize change in model accuracy
+#' @param numSims: number of times to permute each predictor variable
+#' @param dummyCols: which columns correpsond to the same variable (used to handle biogeographic region)
+#' @param best.iter: what was the optimal number of trees in the `gbmModel`?
+
+
+getPerformance <- function(gbmModel, newdata, prezTE, AUC,
+  numSims=1000, dummyCols = NULL, best.iter){
+  require(ROCR)
+  if(is.null(dummyCols)){cols <- 1:ncol(newdata)}
+  if(!is.null(dummyCols)){cols <- (1:ncol(newdata))[-c(dummyCols)]}
+  out <- vector()
+  for(i in 1:length(cols)){
+      newdata2 <- newdata
+      relRed <- vector()
+      colcol <- cols[i]
+      for(n in 1:numSims){
+         newdata2[,i] <- newdata2[sample(1:nrow(newdata2)), colcol]
+         relRed[n] <- unlist(performance(prediction(predict(gbmModel, newdata = newdata2, n.trees = best.iter), prezTE),'auc')@y.values) / AUC
+      }
+      out[i] <- mean(relRed)
+    }
+   names(out) <- colnames(newdata2)[cols]
+    if(!is.null(dummyCols)){
+      newdata2 <- newdata
+      relRed <- vector()
+      for(n in 1:numSims){
+        newdata2[,dummyCols] <- newdata2[sample(1:nrow(newdata2)), dummyCols]
+        relRed[n] <- unlist(performance(prediction(predict(gbmModel, newdata = newdata2, n.trees = unlist(best.iter)), prezTE),'auc')@y.values) / AUC
+      }
+     out[i+1] <- mean(relRed)
+    }
+  return(out)
+}
+```
+
+
+
+
+
+### Model training
+
+```{r eval=FALSE, echo=TRUE}
+parasiteVar <- vector()
+
+for(i in 1:length(parasites)){
+ #create presence vector
+  presence <- rep(0, length(hostData4$H_SP))
+  names(presence) <- hostData4$H_SP
+  presence[which(names(presence) %in%
+    pest[which(pest$P_SP == parasites[i]), 'H_SP'])] <- 1
+ #calculates PCA on parasite communities after removing focal parasite species
+  intMat.trunc <- intMat[,which(colSums(intMat) > 10)]
+  pca.parasite <- princomp(intMat.trunc[,-which(colnames(intMat.trunc) ==
+                                                  parasites[i])])
+
+  parasiteVar[i] <- cumsum(pca.parasite$sdev^2 / sum(pca.parasite$sdev^2))[5]
+  pca.parasite <- pca.parasite$scores[,1:5]
+  # assign PCA loadings to hosts (a bit clunky)
+  hostPCA <- matrix(0, ncol=5, nrow=length(presence))
+  hostPSR <- rep(0, length(presence))
+  names(hostPSR) <- names(presence)
+  rownames(hostPCA) <- names(presence)
+  hostNames <- rownames(hostPCA)
+  # loop through hosts and attribute PCA loadings and parasite
+  #   species richness values to each host
+  for(m in 1: length(hostNames)){
+    hostPCA[which(rownames(hostPCA) == hostNames[m]),] <-
+             pca.parasite[which(rownames(pca.parasite) == hostNames[m]),]
+    hostPSR[which(names(hostPSR) == hostNames[m])] <- psr[which(names(psr)==hostNames[m])]
+  }
+  hostPCA <- cbind(hostPCA, hostPSR)
+  #Only train on some of the absences, since they're not true absences
+  cutDown <- c(which(presence == 1), sample(which(presence == 0),
+                                            20 * sum(presence)))
+  presence1 <- presence[cutDown]
+  hostPCA1 <- hostPCA[cutDown, ]
+  hostData5 <- cbind(hostData4[cutDown,], hostPCA1)
+  if(any(is.na(hostData5$H_SP))){
+      ind <- which(is.na(hostData5$H_SP))
+      hostData5 <- hostData5[-ind,]
+      presence1 <- presence1[-ind]
+  }
+  #Impute the data
+  impDat <- rfImpute(hostData5[,-1], presence1)
+
+  # This makes sure that the test set contains at
+  # least 4 hosts on which the parasite actually occurs
+  inds <- sample(1:nrow(impDat), 0.7 * nrow(impDat))
+  if(sum(presence1[inds]) < 3){
+    inds[1:4] <- which(presence1 == 1)[1:4]
+  }
+  if(sum(presence1[-inds])==0){
+    inds <- inds[-which(inds==1)[1]]
+  }
+  #Set up a prelim train set and a test set
+  train <- impDat[inds,-1]
+  test  <- impDat[-inds,-1]
+ #Presences for training (prezTR) and test (prezTE) sets
+  prezTR <- presence1[inds]
+  prezTE <- presence1[-inds]
+ #Baseline expectations and null models
+  baseline.auc[i] <- unlist(performance(prediction(sample(presence[-inds], length(presence[-inds])), presence[-inds]), 'auc')@y.values)
+  # A single occurrence prediction
+  aso.auc[i] <- unlist(performance(prediction(c(1,rep(0, length(prezTE)-1)),
+                                               prezTE), 'auc')@y.values)
+#   ----
+  # Models trained on geographic variables
+  geog <- c(6:15)
+  # error handling, just in case the gbm model can't be fit
+  temp <- tryCatch(
+     gbm(prezTR ~ ., data = train[,geog], n.trees = 100,
+         interaction.depth = 4, distribution = 'bernoulli',
+         n.cores=5), error = function(e){e}
+  )
+
+  if(!inherits(temp, 'error')){
+   brt.best.iter.geog[[i]] <- gbm.perf(temp, method="OOB")
+   brt.preds.geog[[i]] <- prediction(predict(temp, newdata=test[,geog],
+                                          n.trees=brt.best.iter.geog[[i]]), prezTE)
+   brt.perf.geog[[i]]  <- performance(brt.preds.geog[[i]],"tpr","fpr")
+   brt.perfAUC.geog[i] <- unlist(performance(brt.preds.geog[[i]], 'auc')@y.values)
+   brtModel.geog[[i]] <- summary(temp, order=FALSE)
+
+#   ----
+ # Models trained on host traits
+  trait <- c(1:5)
+  temp <- gbm(prezTR ~ ., data = train[,trait], n.trees = 50000,
+              interaction.depth = 4, distribution = 'bernoulli', n.cores=5)
+  brt.best.iter.trait[[i]] <- gbm.perf(temp, method="OOB")
+  brt.preds.trait[[i]] <- prediction(predict(temp, newdata=test[,trait],
+                                         n.trees=brt.best.iter.trait[[i]]), prezTE)
+  brt.perf.trait[[i]]  <- performance(brt.preds.trait[[i]],"tpr","fpr")
+  brt.perfAUC.trait[i] <- unlist(performance(brt.preds.trait[[i]], 'auc')@y.values)
+  brtModel.trait[[i]] <- summary(temp, order=FALSE)
+
+
+#   ----
+  # Models trained on parasite community variables
+  parcom <- c(21:26)
+  temp <- gbm(prezTR ~ ., data = train[,parcom], n.trees = 50000,
+              interaction.depth = 4, distribution = 'bernoulli', n.cores=5)
+
+  brt.best.iter.parcom[[i]] <- gbm.perf(temp, method="OOB")
+  brt.preds.parcom[[i]] <- prediction(predict(temp, newdata=test[,parcom],
+                                         n.trees=brt.best.iter.parcom[[i]]), prezTE)
+  brt.perf.parcom[[i]] <- performance(brt.preds.parcom[[i]],"tpr","fpr")
+  brt.perfAUC.parcom[i] <- unlist(performance(brt.preds.parcom[[i]], 'auc')@y.values)
+  brtModel.parcom[[i]] <- summary(temp, order=FALSE)
+
+#   ----
+  # Models trained on host taxonomic variables
+  hostTax <- c(16:20)
+  temp <- gbm(prezTR ~ ., data = train[,hostTax], n.trees = 50000,
+              interaction.depth = 4, distribution = 'bernoulli', n.cores=5)
+  brt.best.iter.hostTax[[i]] <- gbm.perf(temp, method="OOB")
+  brt.preds.hostTax[[i]] <- prediction(predict(temp, newdata=test[,hostTax],
+                                       n.trees=brt.best.iter.hostTax[[i]]), prezTE)
+  brt.perf.hostTax[[i]] <- performance(brt.preds.hostTax[[i]],"tpr","fpr")
+  brt.perfAUC.hostTax[i] <- unlist(performance(brt.preds.hostTax[[i]], 'auc')@y.values)
+  brtModel.hostTax[[i]] <- summary(temp, order=FALSE)
+
+#   ----
+   # Models trained on all variables
+  temp <- gbm(prezTR ~ ., data = train, n.trees = 50000,
+                        interaction.depth = 4, distribution = 'bernoulli', n.cores=5)
+  brt.best.iter[[i]] <- gbm.perf(temp, method="OOB")
+  brt.preds[[i]] <- prediction(predict(temp, newdata=test,
+                                       n.trees=brt.best.iter[[i]]), prezTE)
+  brt.perf[[i]] <- performance(brt.preds[[i]],"tpr","fpr")
+  brt.perfAUC[i] <- unlist(performance(brt.preds[[i]], 'auc')@y.values)
+  brtModel[[i]] <- summary(temp, order=FALSE)
+ }
+ print(i)
+}
+
+
+ # model accuracy
+ acc <- data.frame(base = unlist(baseline.auc),
+    oneShot = aso.auc,
+    brt.geog = brt.perfAUC.geog,
+    brt.trait = brt.perfAUC.trait,
+    brt.parcom = brt.perfAUC.parcom,
+    brt.hostTax = brt.perfAUC.hostTax,
+    brt.all = brt.perfAUC)
+```
+
+
+
+
+
+
+
+### Model result formatting and such
+
+```{r, eval=FALSE, echo=FALSE}
+#Extracting the BRT predictor variable importance values
+brtResults.traits <- matrix(0, ncol=length(brtModel), nrow = 5)
+brtResults.geo <- matrix(0, ncol=length(brtModel), nrow = 10)
+brtResults.pars <- matrix(0, ncol=length(brtModel), nrow = 6)
+brtResults.hostTax <- matrix(0, ncol=length(brtModel), nrow=5)
+brtResults.all <- matrix(0, ncol=length(brtModel), nrow = 26)
+
+for(i in 1:length(brtModel)){
+
+ if(is.null(brtModel[[i]])){
+
+ }else{
+   brtResults.traits[,i] <- brtModel.trait[[i]][order(brtModel.trait[[i]][,1]),2]
+   brtResults.geo[,i]    <- brtModel.geog[[i]][order(brtModel.geog[[i]][,1]),2]
+   brtResults.hostTax[,i]    <- brtModel.hostTax[[i]][order(brtModel.hostTax[[i]][,1]),2]
+   brtResults.pars[,i]   <- brtModel.parcom[[i]][order(brtModel.parcom[[i]][,1]),2]
+   brtResults.all[,i]    <- brtModel[[i]][order(brtModel[[i]][,1]),2]
+   print(i)
+ }
+}
+
+rownames(brtResults.traits)  <- sort(brtModel.trait[[1]][,1])
+rownames(brtResults.geo)     <- sort(brtModel.geog[[1]][,1])
+rownames(brtResults.hostTax) <- sort(brtModel.hostTax[[1]][,1])
+rownames(brtResults.pars)    <- sort(brtModel.parcom[[1]][,1])
+rownames(brtResults.all)     <- sort(brtModel[[1]][,1])
+
+save(brtResults.traits, brtResults.geo, brtResults.hostTax,
+    brtResults.pars, brtResults.all, acc, file='accuracyAndBars.RData')
+```
+
+
+
+
+```{r}
+brtModel2 <- t(ldply(brtModel, function(x){return(x[,2])}))
+brtModel.geog2 <- t(ldply(brtModel.geog, function(x){return(x[,2])}))
+brtModel.trait.sc <- t(ldply(brtModel.trait, function(x){return(x[,2])}))
+brtModel.parcom.sc <- t(ldply(brtModel.parcom, function(x){return(x[,2])}))
+brtModel.hostTax2 <- t(ldply(brtModel.hostTax, function(x){return(x[,2])}))
+```
+
+
+```{r}
+rownames(brtModel2) <- brtModel[[1]][,1]
+rownames(brtModel.geog2) <- brtModel.geog[[1]][,1]
+rownames(brtModel.trait.sc) <- brtModel.trait[[1]][,1]
+rownames(brtModel.parcom.sc) <- brtModel.parcom[[1]][,1]
+rownames(brtModel.hostTax2) <- brtModel.hostTax[[1]][,1]
+
+brtModel.geog2 <- rbind(brtModel.geog2, biogeog = colSums(brtModel.geog2[c(4:10),], na.rm=TRUE))
+brtModel.geog.sc <- brtModel.geog2[-c(4:10),]
+
+brtModel2 <- rbind(brtModel2, biogeog = colSums(brtModel2[c(9:15),]))
+brtModel.sc <- brtModel2[-c(9:15),]
+```
+
+
+
+
+
+
+
+## Figure 1
+
+```{r}
+# The `add.alpha` function was taken from a gist by mages (https://gist.github.com/mages/5339689)
+
+add.alpha <- function(col, alpha=1){
+  if(missing(col))
+    stop("Please provide a vector of colours.")
+  apply(sapply(col, col2rgb)/255, 2,
+                     function(x)
+                       rgb(x[1], x[2], x[3], alpha=alpha))
+}
+
+
+cols <- c('#d1006a', '#6ad100', '#006ad1', '#FF9F1C')
+
+layout(matrix(c(1,2),ncol=2), width=c(1,0.25))
+
+brtMean.all <- rowMeans(brtModel.sc, na.rm=TRUE)
+brtSE.all <- apply(brtModel.sc, 1, sd, na.rm=TRUE) #/ sqrt(ncol(brtModel.sc))
+
+traits <- data.frame(var = c("MaxL", "K", "Y", "Ym", "T", "AOO", "LAT", "LON", "pc1", "pc2",
+                            "pc3", "pc4", "pc5", "V1", "V2", "V3", "V4", "V5", "hostPSR",
+                            "biogeog"),
+                    name = c("Max Length", "Host growth rate", "Host lifespan",  "Host age at maturity",
+                            "Host trophic level", "Area of occupancy",  "Latitude", "Longitude", "TaxonomyPCoA.1",  "TaxonomyPCoA.2","TaxonomyPCoA.3",  "TaxonomyPCoA.4",  "TaxonomyPCoA.5",  "ParasitePCA.1", "ParasitePCA.2", "ParasitePCA.3", "ParasitePCA.4", "ParasitePCA.5", "Parasite species richness", "Biogeographic region"),
+                    group = c(1,1,1,1,1,2,2,2,4,4,4,4,4,3,3,3,3,3,3,2),                                                 brtMean.all = brtMean.all, brtSE.all = brtSE.all)
+
+traits <- traits[order(traits$brtMean.all),]
+par(mar=c(4,12,1,1))
+plot(traits$brtMean.all, 1:20, pch=16, xlim=c(-2,25), ylim=c(0.75,20.25), las=1,
+  xlab='', ylab='', yaxt='n', col=cols[traits$group], tck=0.01)
+segments(x0=traits$brtMean.all - traits$brtSE.all, x1=traits$brtMean.all + traits$brtSE.all,
+  y0=1:20, col=add.alpha(cols[traits$group],0.5), lwd=3)
+points(traits$brtMean.all, 1:20, pch=16, cex=1.5, col=cols[traits$group])
+mtext("Relative contribution", side=1, line=2)
+axis(2, at=1:20, labels=traits$name, las=1, tck=-0.01)
+
+par(mar=c(4,0,1,4))
+plot(x=1:6, colMeans(acc[,-2], na.rm=TRUE)[c(1,3,5,2,4,6)], pch=21, bg=c(grey(0.5,0.5), cols[c(1,4,2,3)], 1), col=1,
+  las=1, xlab='', tck=0, ylab='AUC', xaxt='n', yaxt='n', cex=2, xlim=c(0,7), ylim=c(0.5, 1))
+segments(x0=1:6, y0 = colMeans(acc[,-2], na.rm=TRUE)[c(1,3,5,2,4,6)] -
+  2*apply(acc[,-2],2, function(x){sd(x, na.rm=TRUE)/sqrt(length(na.omit(x)))})[c(1,3,5,2,4,6)],
+  y1 =  colMeans(acc[,-2], na.rm=TRUE)[c(1,3,5,2,4,6)] + 2*apply(acc[,-2],2, function(x){sd(x, na.rm=TRUE)/sqrt(length(na.omit(x)))})[c(1,3,5,2,4,6)], col=add.alpha(c(grey(0.5,0.5), cols[c(1,4,2,3)], 1), 0.5),lwd=4)
+points(x=1:6, colMeans(acc[,-2], na.rm=TRUE)[c(1,3,5,2,4,6)], pch=21, bg=c(grey(0.5,0.5), cols[c(1,4,2,3)], 1), col=1, cex=2)
+axis(4, at=seq(0.5,1,by=0.1), labels=seq(0.5,1,by=0.1), tck=0.01, las=1)
+text(3.5, 1, 'AUC', font=2)
+
+dev.copy(pdf, 'auc.pdf', width=8.5, height=5); dev.off()
+```
+
+
+
+
+### What variables are important in submodels?
+
+```{r }
+layout(matrix(c(1,3,2,4),ncol=2), height=c(1,1.1))
+# (host traits)
+brtMean.traits <- rowMeans(brtModel.trait.sc)
+brtSE.traits <- apply(brtModel.trait.sc, 1, sd) #/ sqrt(ncol(brtModel.trait.sc))
+inds.traits <- order(brtMean.traits)
+
+brtMean.traits <- brtMean.traits[order(names(brtMean.traits))]
+nms <- traits[which(traits$var %in% names(brtMean.traits[inds.traits])), c('var','name')]
+names(brtMean.traits) <- nms[order(nms$var),'name']
+inds.traits <- order(brtMean.traits)
+
+
+par(mar=c(2,9,0.25,0.25))
+plot(brtMean.traits[inds.traits], 1:5, pch=16, xlim=c(0,70), ylim=c(0.75,5.25), las=1, xlab='',
+  ylab='', yaxt='n', col=cols[1], tck=0.01)
+segments(x0=brtMean.traits[inds.traits] - brtSE.traits[inds.traits],
+  x1=brtMean.traits[inds.traits] + brtSE.traits[inds.traits],
+  y0=1:5, col=add.alpha(cols[1],0.5), lwd=3)
+points(brtMean.traits[inds.traits], 1:5, pch=16, col=cols[1], cex=1.5)
+text(54,0.85, expression(paste(bar(italic("AUC")), " = 0.72")), cex=1.25, font=2, col=cols[1])
+axis(2, at=1:5, labels=names(brtMean.traits[inds.traits]), las=1)
+
+
+# (geographic vars)
+brtMean.geog <- rowMeans(brtModel.geog.sc, na.rm=TRUE)
+brtSE.geog <- apply(brtModel.geog.sc, 1, sd, na.rm=TRUE) #/ sqrt(ncol(brtModel.geog.sc))
+inds.geog <- order(brtMean.geog)
+
+brtMean.geog <- brtMean.geog[order(names(brtMean.geog))]
+nms <- traits[which(traits$var %in% names(brtMean.geog[inds.geog])), c('var','name')]
+names(brtMean.geog) <- nms[order(nms$var),'name']
+inds.geog <- order(brtMean.geog)
+
+plot(brtMean.geog[inds.geog], 1:4, pch=16, xlim=c(0,70), ylim=c(0.75,4.25), las=1,
+  xlab='', ylab='', yaxt='n', col=cols[2], tck=0.01)
+segments(x0 = brtMean.geog[inds.geog] - brtSE.geog[inds.geog],
+  x1 = brtMean.geog[inds.geog] + brtSE.geog[inds.geog],
+  y0=1:4, col=add.alpha(cols[2],0.5),lwd=3)
+points(brtMean.geog[inds.geog],1:4, pch=16, cex=1.5, col=cols[2])
+text(54,0.85, expression(paste(bar(italic("AUC")), " = 0.85")), cex=1.25, font=2, col=cols[2])
+axis(2, at=1:4, labels=names(brtMean.geog[inds.geog]), las=1)
+
+
+
+par(mar=c(4,9,0.25,0.25))
+# (host taxonomy)
+brtMean.hostTax <- rowMeans(brtModel.hostTax2, na.rm=TRUE)
+brtSE.hostTax <- apply(brtModel.hostTax2, 1, sd, na.rm=TRUE)
+inds.hostTax <- order(brtMean.hostTax)
+
+brtMean.hostTax <- brtMean.hostTax[order(names(brtMean.hostTax))]
+nms <- traits[which(traits$var %in% names(brtMean.hostTax[inds.hostTax])), c('var','name')]
+names(brtMean.hostTax) <- nms[order(nms$var),'name']
+inds.hostTax <- order(brtMean.hostTax)
+
+plot(brtMean.hostTax[inds.hostTax], 1:5, pch=16, xlim=c(0,70), ylim=c(0.75,5.25), las=1,
+  xlab='', ylab='', yaxt='n', col=cols[4], tck=0.01)
+segments(x0 = brtMean.hostTax[inds.hostTax] - brtSE.hostTax[inds.hostTax],
+  x1 = brtMean.hostTax[inds.hostTax] + brtSE.hostTax[inds.hostTax],
+  y0=1:5, col=add.alpha(cols[4],0.5),lwd=3)
+points(brtMean.hostTax[inds.hostTax],1:5, pch=16, cex=1.5, col=cols[4])
+text(54,0.85, expression(paste(bar(italic("AUC")), " = 0.84")), cex=1.25, font=2, col=cols[4])
+axis(2, at=1:5, labels=names(brtMean.hostTax[inds.hostTax]), las=1)
+mtext("Relative contribution", side=1, line=2)
+
+
+
+# (parasite community)
+brtMean.parcom <- rowMeans(brtModel.parcom.sc, na.rm=TRUE)
+brtSE.parcom <- apply(brtModel.parcom.sc, 1, sd, na.rm=TRUE)# / sqrt(ncol(brtModel.parcom.sc))
+inds.parcom <- order(brtMean.parcom)
+
+brtMean.parcom <- brtMean.parcom[order(names(brtMean.parcom))]
+nms <- traits[which(traits$var %in% names(brtMean.parcom[inds.parcom])), c('var','name')]
+nms$name <- as.character(nms$name)
+nms$name[which(nms$var=='hostPSR')] <- 'Parasite species \n richness'
+names(brtMean.parcom) <- nms[order(nms$var),'name']
+inds.parcom <- order(brtMean.parcom)
+
+plot(brtMean.parcom[inds.parcom], 1:6, pch=16, xlim=c(0,70), ylim=c(0.75,6.25), las=1, xlab='',
+  ylab='', yaxt='n', col=cols[3], tck=0.01)
+segments(x0=brtMean.parcom[inds.parcom] - brtSE.parcom[inds.parcom],
+  x1=brtMean.parcom[inds.parcom] + brtSE.parcom[inds.parcom],
+  y0=1:6, col=add.alpha(cols[3], alpha=0.5),lwd=3)
+points(brtMean.parcom[inds.parcom], 1:6, pch=16, cex=1.5,col=cols[3])
+mtext("Relative contribution", side=1, line=2)
+text(54,0.85, expression(paste(bar(italic("AUC")), " = 0.90")), cex=1.25, font=2, col=cols[3])
+axis(2, at=1:6,labels=names(brtMean.parcom[inds.parcom]),las=1)
+
+dev.copy(pdf, 'submodels.pdf', width=7, height=5.5);dev.off()
+```
+
+
+
+
+# Supplemental figures
+
+### Does predictive power differ systematically among parasites?
+
+```{r eval=T, echo=F}
+
+#Number of hosts each parasite infects
+hostNum <- table(pest$P_SP)
+hostNum <- as.numeric(hostNum[which(names(hostNum) %in% parasites)])
+
+#Beating the data up to get parasite 'type'
+parPest <- parasites
+parType <- unique(fishData[which(fishData[,'P_SP'] %in% parPest), 2:4], MARGIN=1)
+parType[,1] <- gsub('[*]','',parType[,1])
+parType <- unique(parType, MARGIN=1)
+parType <- parType[order(parType[,3]),]
+multNamed <- tail(names(sort(table(parType[,3]))), 4)
+for(i in 1:length(multNamed)){
+  parType <- parType[-which(parType[,3] %in% multNamed[i])[1],]
+}
+
+par(mar=c(4,4,0.5,0.5))
+plot(log(hostNum), acc$brt.all, tck=0.01, las=1, xlab='log(# host species infected)',
+  pch=16, ylab='Accuracy (AUC)', col=add.alpha(1,0.4), ylim=c(0.25,1), type='p')
+points(log(hostNum), acc$brt.geog, pch=16, col=add.alpha(cols[1],0.4))
+points(log(hostNum), acc$brt.trait, pch=16, col=add.alpha(cols[2],0.4))
+points(log(hostNum), acc$brt.parcom, pch=16, col=add.alpha(cols[3],0.4))
+points(log(hostNum), acc$brt.hostTax, pch=16, col=add.alpha(cols[4],0.4))
+abline(h=0.5, col=1, lwd=2, lty=4)
+
+if(any(is.na(acc))){
+  inds <- which(is.na(acc$brt.all))
+  hostNum2 <- hostNum[-inds]
+  acc2 <- acc[-inds,]
+}else{
+  hostNum2 <- hostNum
+  acc2 <- acc
+}
+lines(smooth.spline(log(hostNum2), acc2$brt.all, spar=0.5), lwd=4.25, col=1)
+lines(smooth.spline(log(hostNum2), acc2$brt.all, spar=0.5), lwd=3, col=grey(0.5))
+lines(smooth.spline(log(hostNum2), acc2$brt.geog, spar=0.5), lwd=4.25, col=1)
+lines(smooth.spline(log(hostNum2), acc2$brt.geog, spar=0.5), lwd=3, col=cols[2])
+lines(smooth.spline(log(hostNum2), acc2$brt.trait, spar=0.5), lwd=4.25, col=1)
+lines(smooth.spline(log(hostNum2), acc2$brt.trait, spar=0.5), lwd=3, col= cols[1])
+lines(smooth.spline(log(hostNum2), acc2$brt.parcom, spar=0.5), lwd=4.25, col=1)
+lines(smooth.spline(log(hostNum2), acc2$brt.parcom, spar=0.5), lwd=3, col= cols[3])
+lines(smooth.spline(log(hostNum2), acc2$brt.hostTax, spar=0.5), lwd=4.25, col=1)
+lines(smooth.spline(log(hostNum2), acc2$brt.hostTax, spar=0.5), lwd=3, col= cols[4])
+
+abline(h=0.5, col=grey(0.5,0.5), lwd=2, lty=2)
+legend(4, 0.4, c('Full model', 'Parasite community', 'Geography', 'Host taxonomy', 'Host traits'), pch=16, col=c(grey(0.5), cols[c(3,2,4,1)]), bty='n')
+
+dev.copy(pdf, width=5, height=5, 'hostNumAccuracy.pdf'); dev.off()
+```
+
+
+
+
+
+
+
+## Plotting model performance as a function of parasite taxa for each covariate group
+
+```{r eval=TRUE, echo=TRUE,fig.height=7, fig.width=7}
+layout(matrix(c(1,2,3,4,2,5), ncol=3, byrow=TRUE))
+hostCol <- c("#9768DD", "#29A0EB", "#C55F30", "#C74A6C", "#66903C")
+
+par(mar=c(1,4,2,1))
+plot(as.factor(parType[,1]), acc$brt.trait, col=add.alpha(hostCol, 0.75), tck=0.01, pch=16, las=1, ylab='Accuracy (AUC)', xaxt='n', ylim=c(0.2,1), main="Host traits", outcol=grey(0.5,0.25), staplecol = hostCol, staplelwd=2, whisklty=1, whiskcol=hostCol, whisklwd=2)
+abline(h=0.5, col=grey(0.5,0.5), lwd=2, lty=2)
+
+par(mar=c(10,2,2,1))
+plot(as.factor(parType[,1]), acc$brt.all, col=add.alpha(hostCol, 0.75), pch=16, tck=0.01, las=1,
+  ylab='', xaxt='n', ylim=c(0.2,1), main="Full model",outcol=grey(0.5,0.25),
+  staplecol = hostCol, staplelwd=2, whisklty=1, whiskcol=hostCol, whisklwd=2)
+
+parGroups <- c('Acanthocephala', 'Cestoda', 'Monogenea', 'Nematoda', 'Trematoda')
+axis(1, 1:5, parGroups, las=2, tck=0.01, padj=0, cex.axis=1.25)
+abline(h=0.5, col=grey(0.5,0.5), lwd=2, lty=2)
+
+
+par(mar=c(1,2,2,1))
+plot(as.factor(parType[,1]), acc$brt.geog, col=add.alpha(hostCol, 0.75), tck=0.01, pch=16,
+  las=1, ylab='Accuracy (AUC)', xaxt='n', ylim=c(0.2,1), main="Geography",
+  outcol=grey(0.5,0.25), staplecol = hostCol, staplelwd=2, whisklty=1,
+  whiskcol=hostCol, whisklwd=2)
+
+par(mar=c(1,4,2,1))
+plot(as.factor(parType[,1]), acc$brt.parcom, col=add.alpha(hostCol, 0.75), tck=0.01,pch=16,
+  las=1, ylab='', xaxt='n', ylim=c(0.2,1), main="Parasite community",outcol=grey(0.5,0.25),
+  staplecol = hostCol, staplelwd=2, whisklty=1, whiskcol=hostCol, whisklwd=2)
+abline(h=0.5, col=grey(0.5,0.5), lwd=2, lty=2)
+
+par(mar=c(1,2,2,1))
+plot(as.factor(parType[,1]), acc$brt.hostTax, col=add.alpha(hostCol, 0.75), tck=0.01,pch=16,
+  las=1, ylab='', xaxt='n', ylim=c(0.2,1), main="Host taxonomy",outcol=grey(0.5,0.25),
+  staplecol = hostCol, staplelwd=2, whisklty=1, whiskcol=hostCol, whisklwd=2)
+abline(h=0.5, col=grey(0.5,0.5), lwd=2, lty=2)
+
+dev.copy(pdf, width=7, height=7, 'parAccuracy.pdf'); dev.off()
+```
+
+
+
+
+
+
+
+## How does the number of background points influence model accuracy?
+
+```{r eval=FALSE, echo=TRUE}
+
+getBackground <- function(parasites, bckgrnd = 10){
+  parasiteVar <- vector()
+  baseline.auc <- brt.auc <- vector()
+  brtModel <- list()
+  for(i in 1:length(parasites)){
+   #create presence vector
+    presence <- rep(0, length(hostData4$H_SP))
+    names(presence) <- hostData4$H_SP
+    presence[which(names(presence) %in% pest[which(pest$P_SP == parasites[i]), 'H_SP'])] <- 1
+   #calculates PCA on parasite communities after removing focal parasite species
+    intMat.trunc <- intMat[,-which(colSums(intMat) < 10)]
+    pca.parasite <- princomp(intMat.trunc[,-which(colnames(intMat.trunc) ==
+                                                  parasites[i])])
+
+    parasiteVar[i] <- cumsum(pca.parasite$sdev^2 / sum(pca.parasite$sdev^2))[5]
+    pca.parasite <- pca.parasite$scores[,1:5]
+    # assign PCA loadings to hosts (a bit clunky)
+    hostPCA <- matrix(0, ncol=5, nrow=length(presence))
+    hostPSR <- rep(0, length(presence))
+    names(hostPSR) <- names(presence)
+    rownames(hostPCA) <- names(presence)
+    hostNames <- rownames(hostPCA)
+   # loop through hosts and attribute PCA loadings and parasite
+   #   species richness values to each host
+    for(m in 1: length(hostNames)){
+      hostPCA[which(rownames(hostPCA) == hostNames[m]),] <-
+             pca.parasite[which(rownames(pca.parasite) == hostNames[m]),]
+      hostPSR[which(names(hostPSR) == hostNames[m])] <- psr[which(names(psr)==hostNames[m])]
+    }
+    hostPCA <- cbind(hostPCA, hostPSR)
+
+    #Only train on some of the absences, since they're not true absences
+    cutDown <- c(which(presence == 1), sample(which(presence == 0),
+                                              min(c(bckgrnd * sum(presence), sum(presence==0)))))
+
+    presence1 <- presence[cutDown]
+    hostPCA1 <- hostPCA[cutDown, ]
+
+    hostData5 <- cbind(hostData4[cutDown,], hostPCA1)
+    if(any(is.na(hostData5$H_SP))){
+        ind <- which(is.na(hostData5$H_SP))
+        hostData5 <- hostData5[-ind,]
+        presence1 <- presence1[-ind]
+    }
+    #Impute the data
+    impDat <- rfImpute(hostData5[,-1], presence1)
+
+    # This makes sure that the test set contains at
+    # least 4 hosts on which the parasite actually occurs
+    inds <- sample(1:nrow(impDat), 0.7 * nrow(impDat))
+    if(sum(presence1[inds]) < 4){
+      inds[1:4] <- which(presence1 == 1)[1:4]
+    }
+
+    #Set up a prelim train set and a test set
+    train <- impDat[inds,-1]
+    test  <- impDat[-inds,-1]
+
+   #Presences for training (prezTR) and test (prezTE) sets
+    prezTR <- presence1[inds]
+    prezTE <- presence1[-inds]
+
+   #Baseline expectations and null models
+    baseline.auc[i] <- unlist(performance(prediction(sample(presence[-inds], length(presence[-inds])), presence[-inds]), 'auc')@y.values)
+
+#   ----
+    temp <- tryCatch(
+        gbm(prezTR ~ ., data = train,  n.trees = 100,
+                    interaction.depth = 4, distribution = 'bernoulli',
+                    n.cores=5), error = function(e){e}
+      )
+
+    if(!inherits(temp, 'error')){
+        brt.best.iter <- gbm.perf(temp, method="OOB")
+        brt.preds <- prediction(predict(temp, newdata=test,
+                                                    n.trees=brt.best.iter), prezTE)
+        brt.perf <- performance(brt.preds,"tpr","fpr")
+        brt.auc[i] <- unlist(performance(brt.preds, 'auc')@y.values)
+    }
+    if(inherits(temp, 'error')){
+        brt.auc[i] <- NA
+    }
+
+    print(i)
+    gc()
+   }
+    return(data.frame(baseline = baseline.auc, brt = brt.auc))
+  }
+
+
+#sample 50 random parasites from those with 40 or more occurrence points
+psites <- table(pest$P_SP)
+psites <- psites[psites > 40]
+
+set.seed(30)
+psites <- names(psites)[sample(1:length(psites), 50)]
+
+
+auc5 <- getBackground(psites, 5)
+auc10 <- getBackground(psites, 10)
+auc20 <- getBackground(psites, 20)
+auc40 <- getBackground(psites, 40)
+
+
+aucMns <- c(mean(auc5$brt), mean(auc10$brt), mean(auc20$brt), mean(auc40$brt))
+aucSd <-  c(sd(auc5$brt), sd(auc10$brt), sd(auc20$brt), sd(auc40$brt))
+
+plot(x=c(5,10,20,40), aucMns, type='b', ylab='Model accuracy (AUC)', xlab='Proportion background points (x presence points)', ylim=c(0.75,1), lwd=2, tck=0.01, las=1, xaxt='n')
+points(x=10, y=aucMns[2], pch=21, bg='dodgerblue', cex=1.1)
+axis(1, c(5,10,20,40), tck=0.01 )
+lines(c(5,10,20,40),aucMns+aucSd, lty=2, lwd=2)
+lines(c(5,10,20,40),aucMns-aucSd, lty=2, lwd=2)
+
+dev.copy(pdf, 'backgroundPts.pdf', height=5, width=5.75); dev.off()
+
+```
+
+
+
+
+### Diagnostic PCA plot (scree plot)
+
+```{r}
+
+parPCA <- princomp(intMat.trunc)
+# Eigenvalues
+parEig <- (parPCA$sdev)^2
+# Variances in percentage
+parVarEig <- parEig*100/sum(parEig)
+# Cumulative variances
+parCumVar <- cumsum(parVarEig)
+cumVarPrint <- as.character(substr(parCumVar[1:10], start=1, stop=4))
+cumVarPrint[1] <- '9.0'
+
+par(mar=c(4,4,0.5,0.5))
+barplot(parVarEig[1:10], las=1,
+  col=add.alpha(c(rep('dodgerblue',5), rep('firebrick', 5)), 0.5),
+  border=c(rep('dodgerblue',5), rep('firebrick', 5)),
+  main='', ylim=c(0,15), xaxt='n', xlab='Principal component axis',
+  tck=-0.01, ylab='Percent variance explained')
+axis(1, labels=c(1:10), at=seq(0.8,11.5, length.out=10), tck=-0.01)
+
+text(x=seq(0.7,11.5, length.out=10), y = parVarEig[1:10]+0.5,
+  labels=cumVarPrint)
+
+dev.copy(pdf, 'scree.pdf', height=3, width=6); dev.off()
+
+```
